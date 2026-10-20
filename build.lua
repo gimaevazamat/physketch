@@ -17,7 +17,7 @@ checkengines = {"pdftex"}
 checkruns    = 1
 typesetruns  = 3
 
-tagfiles = {"physketch*.sty", "physketch-doc.tex", "README.md"}
+tagfiles = {"physketch*.sty", "physketch-doc.tex", "README.md", "README.ru.md"}
 
 local function iso_to_latex(date)
   return (date:gsub("-", "/"))
@@ -38,6 +38,10 @@ function update_tag(file, content, tagname, tagdate)
     content = content:gsub(
       "Version [%d%.]+, %d%d%d%d%-%d%d%-%d%d",
       "Version " .. version .. ", " .. tagdate)
+  elseif file == "README.ru.md" then
+    content = content:gsub(
+      "Версия [%d%.]+, %d%d%d%d%-%d%d%-%d%d",
+      "Версия " .. version .. ", " .. tagdate)
   end
   return content
 end
