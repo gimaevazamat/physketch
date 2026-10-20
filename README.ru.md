@@ -63,15 +63,8 @@ TikZ/PGF 3.1.5 или новее (для `patterns.meta`), LaTeX 2020-10-01 ил
 Положите все файлы `physketch*.sty` в `TEXMFHOME`, например в
 `~/texmf/tex/latex/physketch/`, или рядом со своим документом.
 
-## Автор и лицензия
+## Лицензия
 
-Copyright (C) 2024–2026 Azamat Gimaev.
-
-Пакет распространяется на условиях LaTeX Project Public License версии 1.3c
-или (по вашему выбору) любой более поздней. Актуальная версия лицензии:
-<https://www.latex-project.org/lppl.txt>.
-
-Статус сопровождения по LPPL — `maintained`, текущий сопровождающий —
-Azamat Gimaev.
-
-Пакет состоит из файлов `physketch*.sty` и `physketch-doc.tex`.
+Copyright (C) 2024–2026 Azamat Gimaev. Распространяется на условиях
+[LaTeX Project Public License](https://www.latex-project.org/lppl.txt)
+версии 1.3c или более поздней.

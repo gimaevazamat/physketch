@@ -64,16 +64,8 @@ TikZ/PGF 3.1.5 or later (for `patterns.meta`), LaTeX 2020-10-01 or later.
 Put all `physketch*.sty` files somewhere in your `TEXMFHOME`, for example
 `~/texmf/tex/latex/physketch/`, or next to your document.
 
-## Author and license
+## License
 
-Copyright (C) 2024–2026 Azamat Gimaev.
-
-This work may be distributed and/or modified under the conditions of the
-LaTeX Project Public License, either version 1.3c of this license or (at
-your option) any later version. The latest version of this license is in
-<https://www.latex-project.org/lppl.txt>.
-
-This work has the LPPL maintenance status `maintained`. The Current
-Maintainer of this work is Azamat Gimaev.
-
-The work consists of the files `physketch*.sty` and `physketch-doc.tex`.
+Copyright (C) 2024–2026 Azamat Gimaev. Distributed under the
+[LaTeX Project Public License](https://www.latex-project.org/lppl.txt),
+version 1.3c or later.
