@@ -1,0 +1,131 @@
+%% physketch.optics.sty
+%% Optics part of physketch: rays, light sources, lenses, screens and
+%% mirrors.
+%%
+%% Copyright (C) 2024-2026 Azamat Gimaev
+%% This work may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.3c of this license
+%% or (at your option) any later version.
+\NeedsTeXFormat{LaTeX2e}[2020/10/01]
+\ProvidesPackage{physketch.optics}
+  [2026/10/20 v0.1.0 physketch: optics]
+
+\RequirePackage{physketch.general}
+
+\pgfqkeys{/physketch}{
+  screen distance/.initial = 1.2mm,
+  mirror width/.initial    = 2mm,
+}
+
+\pgfdeclareverticalshading{physketch@mirror}{100bp}
+  {color(0bp)=(black!45); color(100bp)=(black!8)}
+
+% ---------------------------------------------------------------------
+% Rays
+% ---------------------------------------------------------------------
+\tikzset{
+  ray/.style           = {draw=ray#1},
+  ray/.default         = 1,
+  virtual ray/.style   = {draw=ray#1, dashed},
+  virtual ray/.default = 1,
+  optical axis/.style  = {ultra thin, dash dot},
+  % an object (an arrow from A to B) and its virtual image
+  object/.style         = {thick, ->},
+  virtual object/.style = {thick, ->, dashed},
+}
+
+% ---------------------------------------------------------------------
+% Screens and mirrors
+% ---------------------------------------------------------------------
+\tikzset{
+  % a thick line with sparse hatching behind it
+  screen/.style  = {thick, preaction={physketch/band={right}%
+    {\pgfkeysvalueof{/physketch/hatch depth}}{hatch}%
+    {\pgfkeysvalueof{/physketch/screen distance}}}},
+  screen'/.style = {thick, preaction={physketch/band={left}%
+    {\pgfkeysvalueof{/physketch/hatch depth}}{hatch}%
+    {\pgfkeysvalueof{/physketch/screen distance}}}},
+  % a thick line with a grey gradient behind it
+  mirror/.style  = {thick, preaction={physketch/band={right}%
+    {\pgfkeysvalueof{/physketch/mirror width}}{shade}{physketch@mirror}}},
+  mirror'/.style = {thick, preaction={physketch/band={left}%
+    {\pgfkeysvalueof{/physketch/mirror width}}{shade}{physketch@mirror}}},
+}
+
+% ---------------------------------------------------------------------
+% Light sources
+% ---------------------------------------------------------------------
+% \lightsource[name=S, radius=0.15cm, halo=0.2cm, fill=white]{(x,y)}
+% The source is a circular node `S' of radius `halo' filled with `fill':
+% lines drawn from (S) start at the edge of the halo, so rays do not
+% cross the source.
+\pgfqkeys{/physketch/light source}{
+  name/.initial   = {},
+  radius/.initial = 0.15cm,
+  halo/.initial   = 0.2cm,
+  fill/.initial   = white,
+  .unknown/.code  = \physketch@unknown{#1},
+}
+\NewDocumentCommand\lightsource{O{}m}{%
+  \begingroup
+    \def\physketch@opts{}%
+    \pgfqkeys{/physketch/light source}{#1}%
+    \physketch@getname{light source}%
+    \pgfmathsetlengthmacro\physketch@r{\pgfkeysvalueof{/physketch/light source/radius}}%
+    \pgfmathsetlengthmacro\physketch@size
+      {2*(\pgfkeysvalueof{/physketch/light source/halo})}%
+    \edef\physketch@do{\noexpand\node[transform shape, circle,
+      fill=\pgfkeysvalueof{/physketch/light source/fill}, inner sep=0pt,
+      outer sep=0pt, minimum size=\physketch@size,
+      \unexpanded\expandafter{\physketch@opts}] (\physketch@name) at
+      \unexpanded{#2} {};}%
+    \physketch@do
+    \begin{scope}[shift={(\physketch@name.center)}]
+      \foreach \physketch@i in {0,30,...,330}
+        \draw[ultra thin] (\physketch@i:0.05cm) -- (\physketch@i:\physketch@r);
+      \draw[fill=white] (0,0) circle[radius=0.05cm];
+    \end{scope}
+  \endgroup
+}
+
+% ---------------------------------------------------------------------
+% Lenses
+% ---------------------------------------------------------------------
+% \lens[name=L, height=3cm, diverging]{(x,y)}
+% The lens is a node `L' of zero width with anchors L.north, L.south, ...
+\tikzset{
+  physketch/lens/.style = {thick,
+    {Straight Barb[length=2mm, width=2.5mm]}-{Straight Barb[length=2mm, width=2.5mm]}},
+  physketch/diverging lens/.style = {thick,
+    {Straight Barb[length=2mm, width=2.5mm, reversed]}-%
+    {Straight Barb[length=2mm, width=2.5mm, reversed]}},
+}
+\newif\ifphysketch@diverging
+\pgfqkeys{/physketch/lens}{
+  name/.initial    = {},
+  height/.initial  = 3cm,
+  diverging/.code  = \physketch@divergingtrue,
+  converging/.code = \physketch@divergingfalse,
+  .unknown/.code   = \physketch@unknown{#1},
+}
+\NewDocumentCommand\lens{O{}m}{%
+  \begingroup
+    \def\physketch@opts{}%
+    \physketch@divergingfalse
+    \pgfqkeys{/physketch/lens}{#1}%
+    \physketch@getname{lens}%
+    \pgfmathsetlengthmacro\physketch@h{\pgfkeysvalueof{/physketch/lens/height}}%
+    \edef\physketch@do{\noexpand\node[transform shape, rectangle, inner sep=0pt, outer sep=0pt,
+      minimum width=0pt, minimum height=\physketch@h,
+      \unexpanded\expandafter{\physketch@opts}] (\physketch@name) at
+      \unexpanded{#2} {};}%
+    \physketch@do
+    \ifphysketch@diverging
+      \draw[physketch/diverging lens] (\physketch@name.south) -- (\physketch@name.north);
+    \else
+      \draw[physketch/lens] (\physketch@name.south) -- (\physketch@name.north);
+    \fi
+  \endgroup
+}
+
+\endinput

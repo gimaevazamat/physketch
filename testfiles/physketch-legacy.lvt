@@ -1,0 +1,24 @@
+\input{regression-test}
+\documentclass{article}
+\usepackage{physketch.legacy}
+\begin{document}
+\START
+\TEST{legacy picture}{%
+  \setbox0=\hbox{%
+  \begin{tikzpicture}[>=latex']
+    \lightsource{(0,0)}
+    \draw[glassRed] (-3,-2) rectangle ++(2, 0.5);
+    \fill[ground] (0,0) rectangle (4,0.1);
+    \fill[groundPerp] (0,0) rectangle (4,0.1);
+    \fill[screen] (0,0) rectangle (0.1,-5);
+    \fill[mirror] (0,0) rectangle (0.1,-5);
+    \draw[directed] (0,-0.5) -- ++(2,0);
+    \draw[reverse directed] (0,-1) -- ++(2,0);
+    \dist{(-5,-2.5)}{(-1.25,-2.5)}{-90}{below}{$L$}
+    \dist[1][0.7]{(0,0.5)}{(4,0.5)}{90}{above}{4 cm}
+    \sdist{(0,0)}{(0,0.5)}{180}{left}{0.5 cm}
+    \draw (0,0) to[R=$R$] (2,0);
+  \end{tikzpicture}}%
+  \TYPE{legacy picture typeset}%
+}
+\END

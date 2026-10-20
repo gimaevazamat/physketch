@@ -1,0 +1,542 @@
+%% physketch.general.sty
+%% Common part of physketch: colours, house style, materials, fixed
+%% surfaces, arrows on paths, vectors perpendicular to the plane and
+%% distances.
+%%
+%% Copyright (C) 2024-2026 Azamat Gimaev
+%% This work may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.3c of this license
+%% or (at your option) any later version.
+\NeedsTeXFormat{LaTeX2e}[2020/10/01]
+\ProvidesPackage{physketch.general}
+  [2026/10/20 v0.1.0 physketch: common styles]
+
+\@ifpackageloaded{physketch.legacy}{%
+  \PackageError{physketch}
+    {physketch cannot be used together with physketch.legacy}
+    {physketch.legacy reproduces the old design.sty and redefines styles\MessageBreak
+     of physketch. Load either physketch (or its parts) or\MessageBreak
+     physketch.legacy, not both.}%
+  \let\physketch@stop\endinput
+}{\let\physketch@stop\relax}
+\physketch@stop
+
+\RequirePackage{tikz}
+\usetikzlibrary{
+  arrows.meta,
+  calc,
+  decorations.markings,
+  decorations.pathreplacing,
+  patterns.meta,
+}
+
+% ---------------------------------------------------------------------
+% Settings
+% ---------------------------------------------------------------------
+\newcommand\physketchset[1]{\pgfqkeys{/physketch}{#1}}
+
+\pgfqkeys{/physketch}{
+  gap/.initial                 = 0.25mm,
+  hatch distance/.initial      = 0.74mm,
+  hatch depth/.initial         = 1mm,
+  hatch angle/.initial         = 45,
+  hatch line width/.initial    = 0.4pt,
+  dist/offset/.initial          = 5mm,
+  dist/overshoot/.initial       = 1mm,
+  dist/gap/.initial             = 0pt,
+  dist/direction/.initial       = {},
+  dist/outside length/.initial  = 2mm,
+  dist/pos/.initial             = 0.5,
+  dist/l/.code                  =
+    \def\physketch@dist@label{#1}\physketch@dist@innerfalse,
+  dist/l_/.code                 =
+    \def\physketch@dist@label{#1}\physketch@dist@innertrue,
+  dist/outside/.code            = \physketch@dim@outsidetrue,
+  dist/inside/.code             = \physketch@dim@outsidefalse,
+  dist/label style/.code        =
+    \tikzset{physketch/dist label/.append style={#1}},
+  dist/line style/.code         =
+    \tikzset{physketch/dist line/.append style={#1}},
+  dist/.search also             = {/tikz},
+  angle/radius/.initial              = 7.5mm,
+  angle/label radius/.initial        = {},
+  angle/label distance/.initial      = 1mm,
+  angle/pos/.initial                 = 0.5,
+  angle/l/.code                      =
+    \def\physketch@angle@label{#1}\physketch@angle@innerfalse,
+  angle/l_/.code                     =
+    \def\physketch@angle@label{#1}\physketch@angle@innertrue,
+  angle/label style/.code            =
+    \tikzset{physketch/angle label/.append style={#1}},
+  angle/.search also                 = {/tikz},
+}
+\newif\ifphysketch@dim@outside
+\newif\ifphysketch@dist@inner
+\newif\ifphysketch@angle@inner
+
+% Options of the object commands (\pulley, \lightsource, \lens): the
+% known keys of a family are processed, all other keys are collected in
+% \physketch@opts and passed to TikZ.
+\def\physketch@opts{}
+\def\physketch@unknown#1{%
+  \def\physketch@val{#1}%
+  \ifx\physketch@val\pgfkeysnovalue@text
+    \edef\physketch@opts{\unexpanded\expandafter{\physketch@opts},%
+      \unexpanded\expandafter{\pgfkeyscurrentname}}%
+  \else
+    \edef\physketch@opts{\unexpanded\expandafter{\physketch@opts},%
+      \unexpanded\expandafter{\pgfkeyscurrentname}={\unexpanded{#1}}}%
+  \fi
+}
+% \physketch@getname{<family>}: the name of an object, or a scratch name
+\def\physketch@getname#1{%
+  \pgfkeysgetvalue{/physketch/#1/name}\physketch@name
+  \ifx\physketch@name\@empty\def\physketch@name{physketch@scratch}\fi
+}
+
+% ---------------------------------------------------------------------
+% Colours
+% ---------------------------------------------------------------------
+% materials (the TikZ styles of the same names fill semi-transparently)
+\definecolor{water}{HTML}{9ACEFF}
+\definecolor{ice}{HTML}{D8E8F7}
+\definecolor{oil}{HTML}{FFC233}
+\definecolor{gas}{HTML}{D9C8F0}
+\definecolor{glass}{HTML}{FFF2B2}
+% light rays
+\definecolor{ray1}{HTML}{F2B705}
+\definecolor{ray2}{HTML}{D7301F}
+\definecolor{ray3}{HTML}{2B6CB0}
+% bodies
+\colorlet{lightbody}{black!12}
+\colorlet{body}{black!25}
+\colorlet{darkbody}{black!45}
+
+% ---------------------------------------------------------------------
+% House style, applied to every picture
+% ---------------------------------------------------------------------
+\tikzset{
+  physketch/.style = {>={Latex[length=1.6mm, width=1.1mm]}},
+  every picture/.append style = {physketch},
+}
+
+% ---------------------------------------------------------------------
+% Basic styles
+% ---------------------------------------------------------------------
+\tikzset{
+  % materials
+  physketch/material/.style 2 args = {fill=#1, fill opacity=#2, text opacity=1},
+  water/.style = {physketch/material={water}{0.5}},
+  ice/.style   = {physketch/material={ice}{0.7}},
+  oil/.style   = {physketch/material={oil}{0.7}},
+  gas/.style   = {physketch/material={gas}{0.5}},
+  glass/.style = {physketch/material={glass}{0.5}},
+  % arrows in the middle of a path
+  mid arrow/.style = {postaction={decorate, decoration={markings,
+    mark=at position #1 with {\arrow{>}}}}},
+  mid arrow/.default = 0.6,
+  mid arrow'/.style = {postaction={decorate, decoration={markings,
+    mark=at position #1 with {\arrowreversed{>}}}}},
+  mid arrow'/.default = 0.4,
+  % a force: a dot at the point of application and an arrow at the end;
+  % the value is the radius of the dot
+  force/.style = {thick, ->, postaction={decorate, decoration={markings,
+    mark=at position 0 with {\fill (0,0) circle[radius=#1];}}}},
+  force/.default = 0.05cm,
+  % local versions of the hatching settings
+  hatch distance/.code = \pgfkeyssetvalue{/physketch/hatch distance}{#1},
+  hatch depth/.code    = \pgfkeyssetvalue{/physketch/hatch depth}{#1},
+  hatch angle/.code    = \pgfkeyssetvalue{/physketch/hatch angle}{#1},
+}
+
+% ---------------------------------------------------------------------
+% Rotation arrows
+% ---------------------------------------------------------------------
+% \rotation[radius=3mm, tilt=1, start=45, end=315, cw, l=$\omega$]{(x,y)}
+% An arc with an arrow around (x,y), counterclockwise from `start' to `end'
+% (cw: the arrow points the other way).  tilt < 1 squeezes the arc
+% vertically: a rotation about a vertical axis seen from the side.
+\newif\ifphysketch@rot@cw
+\pgfqkeys{/physketch/rotation}{
+  radius/.initial      = 3mm,
+  tilt/.initial        = 1,
+  start/.initial       = 45,
+  end/.initial         = 315,
+  label angle/.initial = 0,
+  cw/.code             = \physketch@rot@cwtrue,
+  ccw/.code            = \physketch@rot@cwfalse,
+  l/.code              = \def\physketch@rot@label{#1},
+  .unknown/.code       = \physketch@unknown{#1},
+}
+\def\physketch@rotkey#1{\pgfkeysvalueof{/physketch/rotation/#1}}
+\NewDocumentCommand\rotation{O{}m}{%
+  \begingroup
+    \def\physketch@opts{}%
+    \def\physketch@rot@label{}%
+    \physketch@rot@cwfalse
+    \pgfqkeys{/physketch/rotation}{#1}%
+    \pgfmathsetlengthmacro\physketch@rx{\physketch@rotkey{radius}}%
+    \pgfmathsetlengthmacro\physketch@ry{\physketch@rotkey{tilt}*\physketch@rx}%
+    \ifphysketch@rot@cw\def\physketch@tips{<-}\else\def\physketch@tips{->}\fi
+    \edef\physketch@do{\noexpand\draw[\physketch@tips,
+      \unexpanded\expandafter{\physketch@opts}] \unexpanded{#2}
+      ++(\physketch@rotkey{start}:\physketch@rx\space and \physketch@ry)
+      arc[start angle=\physketch@rotkey{start}, end angle=\physketch@rotkey{end},
+        x radius=\physketch@rx, y radius=\physketch@ry];}%
+    \physketch@do
+    \ifx\physketch@rot@label\@empty\else
+      \pgfmathsetmacro\physketch@anchor{mod(\physketch@rotkey{label angle}+180,360)}%
+      \path #2 ++(\physketch@rotkey{label angle}:\physketch@rx\space and \physketch@ry)
+        node[anchor=\physketch@anchor, inner sep=2pt] {\physketch@rot@label};
+    \fi
+  \endgroup
+}
+
+% ---------------------------------------------------------------------
+% Vectors perpendicular to the drawing plane
+% ---------------------------------------------------------------------
+\tikzset{
+  pics/field out/.style = {code={
+    \draw (0,0) circle[radius=0.1];
+    \fill (0,0) circle[radius=0.025];
+    \coordinate (-center) at (0,0);
+  }},
+  pics/field in/.style = {code={
+    \draw (0,0) circle[radius=0.1];
+    \draw (45:0.1) -- (225:0.1) (135:0.1) -- (315:0.1);
+    \coordinate (-center) at (0,0);
+  }},
+}
+
+
+% ---------------------------------------------------------------------
+% Bands along a path
+% ---------------------------------------------------------------------
+% The decoration `physketch band' puts a band on one side of a path.
+% A straight segment gets one band of exactly its length, cut at its ends
+% along the bisector of the corner with the neighbouring segments (like a
+% mitre join), so the band of a polyline is continuous.  A curved segment
+% is walked in steps that continue over the joins of the curve segments.
+% The contents of the band are given by \physketch@band@kind (hatch or
+% shade) and \physketch@band@arg (the hatch distance or a shading);
+% \physketch@s is 1 for the left and -1 for the right side.
+\pgfdeclaredecoration{physketch band}{segment}{
+  \state{segment}[
+      physketch prepare, width=\physketch@band@step, next state=segment]{%
+    \pgfinterruptpath
+      \pgfscope
+        \physketch@band@draw
+      \endpgfscope
+    \endpgfinterruptpath
+  }
+  \state{final}{}
+}
+\newif\ifphysketch@curve
+\newif\ifphysketch@tick
+% the width of a state is computed while its options are read
+\pgfkeys{/pgf/decoration automaton/physketch prepare/.code=\physketch@band@prepare}
+\def\physketch@band@prepare{%
+  \ifx\pgfdecorationcurrentinputsegment\pgfdecorationinputsegmentcurveto
+    \global\physketch@curvetrue
+    % \physketch@togo: distance to the next stroke, over the whole path
+    \ifdim\physketch@togo<0.01pt
+      \global\physketch@ticktrue
+      \pgfmathsetlengthmacro\physketch@tmp{\physketch@band@curvestep}%
+      \global\let\physketch@togo\physketch@tmp
+    \else
+      \global\physketch@tickfalse
+    \fi
+    \pgfmathsetlengthmacro\physketch@band@step{min(\physketch@togo,
+      \pgfdecoratedinputsegmentremainingdistance)}%
+    \ifdim\physketch@band@step<0.01pt
+      \def\physketch@band@step{0.01pt}%
+    \fi
+    \pgfmathsetlengthmacro\physketch@tmp{\physketch@togo-\physketch@band@step}%
+    \global\let\physketch@togo\physketch@tmp
+    \physketch@band@turns
+  \else
+    \global\physketch@curvefalse
+    \edef\physketch@band@step{\the\pgfdecoratedinputsegmentremainingdistance}%
+    \physketch@band@turns
+    \pgfmathsetlengthmacro\physketch@tmp{\physketch@band@curvestep}%
+    \global\let\physketch@togo\physketch@tmp
+  \fi
+}
+% the turn into this segment (\physketch@turnin) and out of it
+% (\physketch@turnout), in degrees, normalised and limited
+\def\physketch@band@turns{%
+  \let\physketch@turnin\physketch@prevturn
+  \pgfmathparse{\pgfdecoratedremainingdistance
+    - \pgfdecoratedinputsegmentremainingdistance < 0.01 ? 0 :
+    \pgfdecoratedangletonextinputsegment}%
+  \pgfmathsetmacro\physketch@turnout{max(-140, min(140,
+    \pgfmathresult - 360*round(\pgfmathresult/360)))}%
+  \global\let\physketch@prevturn\physketch@turnout
+}
+\def\physketch@band@draw{%
+  \pgfmathsetlengthmacro\physketch@W{\physketch@s*(\physketch@band@width)}%
+  \ifphysketch@curve
+    \csname physketch@band@curve@\physketch@band@kind\endcsname
+  \else
+    \edef\physketch@L{\the\pgfdecoratedinputsegmentremainingdistance}%
+    % ends of the band at its outer edge, cut along the bisectors
+    \pgfmathsetlengthmacro\physketch@xa{\physketch@W*tan(\physketch@turnin/2)}%
+    \pgfmathsetlengthmacro\physketch@xb
+      {\physketch@L-\physketch@W*tan(\physketch@turnout/2)}%
+    \pgfmathsetlengthmacro\physketch@xmin{min(0pt,\physketch@xa)}%
+    \pgfmathsetlengthmacro\physketch@xmax{max(\physketch@L,\physketch@xb)}%
+    \csname physketch@band@line@\physketch@band@kind\endcsname
+  \fi
+}
+
+% #1 = side (right or left), #2 = width, #3 = kind, #4 = argument
+\tikzset{
+  physketch/band/.code n args = {4}{%
+    \csname physketch@side@#1\endcsname
+    \def\physketch@band@width{#2}%
+    \def\physketch@band@kind{#3}%
+    \edef\physketch@band@arg{#4}%
+    % the distance of the hatching: the argument of the band, if given
+    \ifx\physketch@band@arg\@empty
+      \edef\physketch@band@hatchdistance{\pgfkeysvalueof{/physketch/hatch distance}}%
+    \else
+      \let\physketch@band@hatchdistance\physketch@band@arg
+    \fi
+    % the step on curved segments
+    \ifx\physketch@band@kind\physketch@kind@hatch
+      \let\physketch@band@curvestep\physketch@band@hatchdistance
+    \else
+      \def\physketch@band@curvestep{0.4mm}%
+    \fi
+    \gdef\physketch@togo{0pt}%
+    \gdef\physketch@prevturn{0}%
+    \tikzset{decorate, decoration={physketch band}}%
+  },
+}
+\def\physketch@side@right{\def\physketch@s{-1}}
+\def\physketch@side@left{\def\physketch@s{1}}
+
+% the band of a straight segment
+\def\physketch@band@polygon{%
+  \pgfpathmoveto{\pgfpointorigin}%
+  \pgfpathlineto{\pgfqpoint{\physketch@L}{0pt}}%
+  \pgfpathlineto{\pgfqpoint{\physketch@xb}{\physketch@W}}%
+  \pgfpathlineto{\pgfqpoint{\physketch@xa}{\physketch@W}}%
+  \pgfpathclose
+}
+% straight segments
+\def\physketch@band@line@shade{%
+  \physketch@band@polygon\pgfusepath{clip}%
+  \pgfmathsetlengthmacro\physketch@len{\physketch@xmax-\physketch@xmin}%
+  \physketch@band@shading{\physketch@xmin}{\physketch@len}%
+}
+\def\physketch@band@line@hatch{%
+  \physketch@band@polygon\pgfusepath{clip}%
+  \physketch@band@hatchsetup
+  \pgfmathsetlength\dimen@{\physketch@xmin-abs(\physketch@dx)}%
+  \pgfmathsetlength\dimen@ii{\physketch@xmax+abs(\physketch@dx)}%
+  \loop
+    \pgfpathmoveto{\pgfqpoint{\dimen@}{0pt}}%
+    \pgfpathlineto{\pgfpoint{\dimen@+\physketch@dx}{\physketch@W}}%
+    \advance\dimen@ by \physketch@step\relax
+  \ifdim\dimen@<\dimen@ii
+  \repeat
+  \pgfusepath{stroke}%
+}
+% curved segments: one piece per step
+\def\physketch@kind@hatch{hatch}
+
+\def\physketch@band@curve@shade{%
+  \physketch@band@shading{0pt}{1.3*\physketch@band@step}%
+}
+\def\physketch@band@curve@hatch{%
+  \ifphysketch@tick
+    \physketch@band@hatchsetup
+    % skip strokes that would stick out beyond the ends of the path
+    \pgfmathparse{((\physketch@dx < 0) &&
+        (\pgfdecoratedcompleteddistance < -\physketch@dx))
+      || ((\physketch@dx > 0) &&
+        (\pgfdecoratedremainingdistance < \physketch@dx)) ? 0 : 1}%
+    \ifdim\pgfmathresult pt>0.5pt
+      \pgfpathmoveto{\pgfpointorigin}%
+      \pgfpathlineto{\pgfpoint{\physketch@dx}{\physketch@W}}%
+      \pgfusepath{stroke}%
+    \fi
+  \fi
+}
+\def\physketch@band@hatchsetup{%
+  \pgfsetlinewidth{\pgfkeysvalueof{/physketch/hatch line width}}%
+  \pgfmathsetlengthmacro\physketch@dx
+    {\physketch@W*cot(\pgfkeysvalueof{/physketch/hatch angle})}%
+  \pgfmathsetlengthmacro\physketch@step{\physketch@band@hatchdistance}%
+}
+% the vertical shading \physketch@band@arg stretched over the band from
+% x = #1 over the length #2
+\def\physketch@band@shading#1#2{%
+  \pgfmathsetlengthmacro\physketch@x{#1}%
+  \pgfmathsetlengthmacro\physketch@len{#2}%
+  \pgftransformshift{\pgfpoint{\physketch@x+\physketch@len/2}{\physketch@W/2}}%
+  \pgfmathsetmacro\physketch@xs{\physketch@len/100bp}%
+  \pgfmathsetmacro\physketch@ys{\physketch@W/100bp}%
+  \pgftransformxscale{\physketch@xs}%
+  \pgftransformyscale{\physketch@ys}%
+  \pgflowlevelsynccm
+  \pgfuseshading{\physketch@band@arg}%
+}
+
+% ---------------------------------------------------------------------
+% Fixed surfaces
+% ---------------------------------------------------------------------
+% \draw[surface] hatches the right side of the path, \draw[surface'] the
+% left side; \fill[surface] fills an area with hatching.
+\newif\ifphysketch@isfill
+\def\physketch@checkfill{%
+  \begingroup
+    \tikz@mode
+    \iftikz@mode@fill\aftergroup\physketch@isfilltrue
+    \else\aftergroup\physketch@isfillfalse\fi
+  \endgroup
+}
+\tikzset{
+  physketch/surface/.code = {%
+    \physketch@checkfill
+    \ifphysketch@isfill
+      \tikzset{pattern={Lines[angle=\pgfkeysvalueof{/physketch/hatch angle},
+        distance=\pgfkeysvalueof{/physketch/hatch distance},
+        line width=\pgfkeysvalueof{/physketch/hatch line width}]}}%
+    \else
+      \tikzset{thick, preaction={physketch/band={#1}%
+        {\pgfkeysvalueof{/physketch/hatch depth}}{hatch}{}}}%
+    \fi
+  },
+  surface/.style  = {physketch/surface=right},
+  surface'/.style = {physketch/surface=left},
+}
+
+% ---------------------------------------------------------------------
+% Distances
+% ---------------------------------------------------------------------
+\tikzset{
+  physketch/dist line/.style      = {ultra thin, >={Latex[length=1.3mm, width=0.9mm]}},
+  physketch/dist extension/.style = {ultra thin},
+  physketch/dist label/.style     = {},
+  physketch/angle arc/.style      = {},
+  physketch/angle label/.style    = {},
+}
+
+% \dist[<options>] (A) -- (B);
+% The label is given by the option l=<text> (on the outer side of the
+% dimension line) or l_=<text> (on the inner side), at the position pos.
+\NewDocumentCommand\dist{O{}}{\physketch@dist@read{#1}}
+\def\physketch@dist@read#1#2--#3;{%
+  \begingroup
+    \def\physketch@dist@label{}%
+    \begin{scope}[/physketch/dist/.cd,#1]
+      \physketch@dist{#2}{#3}%
+    \end{scope}%
+  \endgroup
+}
+\def\physketch@distkey#1{\pgfkeysvalueof{/physketch/dist/#1}}
+\def\physketch@dist#1#2{%
+  \path #1 coordinate (physketch@A) #2 coordinate (physketch@B);
+  \pgfmathanglebetweenpoints
+    {\pgfpointanchor{physketch@A}{center}}%
+    {\pgfpointanchor{physketch@B}{center}}%
+  \let\physketch@ang\pgfmathresult
+  \pgfmathsetlengthmacro\physketch@off{\physketch@distkey{offset}}%
+  \edef\physketch@dir{\physketch@distkey{direction}}%
+  \ifx\physketch@dir\@empty
+    \pgfmathsetmacro\physketch@phi{\physketch@ang+90}%
+  \else
+    \pgfmathsetmacro\physketch@phi{\physketch@dir}%
+  \fi
+  \pgfmathsetmacro\physketch@sgn{\physketch@off<0 ? -1 : 1}%
+  \pgfmathsetlengthmacro\physketch@from{\physketch@sgn*(\physketch@distkey{gap})}%
+  \pgfmathsetlengthmacro\physketch@to
+    {\physketch@off+\physketch@sgn*(\physketch@distkey{overshoot})}%
+  \pgfmathsetmacro\physketch@anchor
+    {mod(\physketch@phi + (\physketch@sgn<0 ? 360 : 180), 360)}%
+  \foreach \physketch@P in {physketch@A,physketch@B}
+    \draw[physketch/dist extension]
+      ($(\physketch@P)+(\physketch@phi:\physketch@from)$) --
+      ($(\physketch@P)+(\physketch@phi:\physketch@to)$);
+  \coordinate (physketch@A1) at ($(physketch@A)+(\physketch@phi:\physketch@off)$);
+  \coordinate (physketch@B1) at ($(physketch@B)+(\physketch@phi:\physketch@off)$);
+  \ifphysketch@dim@outside
+    \pgfmathanglebetweenpoints
+      {\pgfpointanchor{physketch@A1}{center}}%
+      {\pgfpointanchor{physketch@B1}{center}}%
+    \let\physketch@psi\pgfmathresult
+    \pgfmathsetlengthmacro\physketch@len{\physketch@distkey{outside length}}%
+    \draw[physketch/dist line, ->]
+      ($(physketch@A1)+(\physketch@psi:-\physketch@len)$) -- (physketch@A1);
+    \draw[physketch/dist line, ->]
+      ($(physketch@B1)+(\physketch@psi:\physketch@len)$) -- (physketch@B1);
+  \else
+    \draw[physketch/dist line, <->] (physketch@A1) -- (physketch@B1);
+  \fi
+  \ifx\physketch@dist@label\@empty\else
+    \ifphysketch@dist@inner
+      \pgfmathsetmacro\physketch@anchor{mod(\physketch@anchor+180,360)}%
+    \fi
+    \path ($(physketch@A1)!\physketch@distkey{pos}!(physketch@B1)$)
+      node[anchor=\physketch@anchor, physketch/dist label] {\physketch@dist@label};
+  \fi
+}
+
+% \angledist[<options>] (A) -- (O) -- (B);
+% An arc around the vertex O from the ray OA to the ray OB, counterclockwise
+% (as in the TikZ library `angles').  The label is given by l=<text>
+% (outside the arc) or l_=<text> (inside the arc), at the position pos
+% along the arc.  By default the label is put `label distance' away from
+% the arc and touches it with its side, so it never covers the arc
+% whatever the radius; an explicit `label radius' puts the centre of the
+% label at that distance from the vertex instead.
+\NewDocumentCommand\angledist{O{}}{\physketch@angle@read{#1}}
+\def\physketch@angle@read#1#2--#3--#4;{%
+  \begingroup
+    \def\physketch@angle@label{}%
+    \begin{scope}[/physketch/angle/.cd,#1]
+      \path #2 coordinate (physketch@A) #3 coordinate (physketch@O)
+        #4 coordinate (physketch@B);
+      \pgfmathanglebetweenpoints{\pgfpointanchor{physketch@O}{center}}%
+        {\pgfpointanchor{physketch@A}{center}}%
+      \let\physketch@from\pgfmathresult
+      \pgfmathanglebetweenpoints{\pgfpointanchor{physketch@O}{center}}%
+        {\pgfpointanchor{physketch@B}{center}}%
+      \pgfmathsetmacro\physketch@to{\pgfmathresult
+        + (\pgfmathresult < \physketch@from ? 360 : 0)}%
+      \pgfmathsetlengthmacro\physketch@r{\pgfkeysvalueof{/physketch/angle/radius}}%
+      \pgfmathsetmacro\physketch@mid{\physketch@from
+        + \pgfkeysvalueof{/physketch/angle/pos}*(\physketch@to-\physketch@from)}%
+      % options like `double' work on paths only, so repeat them here
+      \draw[physketch/angle arc, /physketch/angle/.cd, #1]
+        (physketch@O) ++(\physketch@from:\physketch@r)
+        arc[start angle=\physketch@from, end angle=\physketch@to,
+          radius=\physketch@r];
+      \ifx\physketch@angle@label\@empty\else
+        \edef\physketch@lr{\pgfkeysvalueof{/physketch/angle/label radius}}%
+        \ifx\physketch@lr\@empty
+          \ifphysketch@angle@inner
+            \pgfmathsetlengthmacro\physketch@lr
+              {\physketch@r-\pgfkeysvalueof{/physketch/angle/label distance}}%
+            \pgfmathsetmacro\physketch@anchor{mod(\physketch@mid,360)}%
+          \else
+            \pgfmathsetlengthmacro\physketch@lr
+              {\physketch@r+\pgfkeysvalueof{/physketch/angle/label distance}}%
+            \pgfmathsetmacro\physketch@anchor{mod(\physketch@mid+180,360)}%
+          \fi
+          \path (physketch@O) ++(\physketch@mid:\physketch@lr)
+            node[anchor=\physketch@anchor, inner sep=1pt,
+              physketch/angle label] {\physketch@angle@label};
+        \else
+          \pgfmathsetlengthmacro\physketch@lr{\physketch@lr}%
+          \path (physketch@O) ++(\physketch@mid:\physketch@lr)
+            node[physketch/angle label] {\physketch@angle@label};
+        \fi
+      \fi
+    \end{scope}%
+  \endgroup
+}
+
+\endinput

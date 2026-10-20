@@ -1,0 +1,103 @@
+%% physketch.legacy.sty
+%% The interface of design.sty, the predecessor of physketch, for old
+%% drawings.  It cannot be combined with the other parts of physketch.
+%%
+%% Copyright (C) 2024-2026 Azamat Gimaev
+%% This work may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.3c of this license
+%% or (at your option) any later version.
+\NeedsTeXFormat{LaTeX2e}[2020/10/01]
+\ProvidesPackage{physketch.legacy}
+  [2026/10/20 v0.1.0 physketch: design.sty interface]
+
+\@ifpackageloaded{physketch.general}{%
+  \PackageError{physketch.legacy}
+    {physketch.legacy cannot be used together with physketch}
+    {physketch.legacy reproduces the old design.sty and redefines styles\MessageBreak
+     of physketch. Load either physketch (or its parts) or\MessageBreak
+     physketch.legacy, not both.}%
+  \let\physketch@stop\endinput
+}{\let\physketch@stop\relax}
+\physketch@stop
+
+\RequirePackage{tikz}
+\RequirePackage{xparse}
+\RequirePackage{circuitikz}
+\ctikzset{american, resistor=european, inductor=american}
+\usetikzlibrary{
+  circuits,
+  arrows,
+  decorations,
+  decorations.pathreplacing,
+  decorations.pathmorphing,
+  decorations.markings,
+  calc,
+  patterns,
+  patterns.meta,
+}
+
+\tikzset{
+  arrowstyle/.style = {scale=1},
+  directed/.style = {postaction={decorate, decoration={markings,
+    mark=at position .6 with {\arrow[arrowstyle]{stealth}}}}},
+  reverse directed/.style = {postaction={decorate, decoration={markings,
+    mark=at position .4 with {\arrowreversed[arrowstyle]{stealth}}}}},
+  ground/.style     = {pattern={Lines[angle=45, distance=0.074cm]}, fill, draw=none},
+  groundPerp/.style = {pattern={Lines[angle=-45, distance=0.074cm]}, fill, draw=none},
+  groundHor/.style  = {pattern={Lines[angle=0, distance=0.074cm]}, fill, draw=none},
+  screen/.style     = {pattern={Lines[angle=45, distance=0.12cm]}, fill, draw=none},
+  mirrorLeft/.style   = {shade, draw=none, left color=gray!80, right color=gray!10},
+  mirrorRight/.style  = {shade, draw=none, right color=gray!80, left color=gray!10},
+  mirrorTop/.style    = {shade, draw=none, top color=gray!80, bottom color=gray!10},
+  mirrorBottom/.style = {shade, draw=none, bottom color=gray!80, top color=gray!10},
+  mirror/.style       = {draw=none, fill=gray!40},
+}
+
+\definecolor{titleColor}{rgb}{0.439,0.188,0.627}
+\definecolor{glassColor}{HTML}{FFF2B2}
+\definecolor{waterColor}{HTML}{9ACEFF}
+\definecolor{gasColor}{HTML}{BBFFAB}
+\definecolor{glassRedColor}{HTML}{E57860}
+\definecolor{oilColor}{HTML}{DAC745}
+\definecolor{iceColor}{HTML}{D8E8F7}
+
+\tikzset{
+  glass/.style    = {fill=glassColor, fill opacity=0.5},
+  water/.style    = {fill=waterColor, fill opacity=0.5},
+  gas/.style      = {fill=gasColor, fill opacity=0.5},
+  glassRed/.style = {fill=glassRedColor, fill opacity=0.5},
+  oil/.style      = {fill=oilColor, fill opacity=0.7},
+  ice/.style      = {fill=iceColor, fill opacity=0.7},
+}
+
+\newcommand\lightsource[1]{%
+  \begin{scope}[shift={#1}]
+    \foreach \i in {0,30,...,359}
+      \draw[ultra thin, rotate=\i] (0,0) -- (0.15,0);
+    \draw[fill=white] (0,0) circle (0.05);
+  \end{scope}}
+
+\NewDocumentCommand\dist{O{0.6}O{0.5}mmmmm}{%
+  \begin{scope}
+    \draw[shift={#3}, rotate=#5, ultra thin] (0,0) -- ++(#1,0);
+    \draw[shift={#4}, rotate=#5, ultra thin] (0,0) -- ++(#1,0);
+    \path[shift={#3}, rotate=#5] (#2,0) coordinate (a);
+    \path[shift={#4}, rotate=#5] (#2,0) coordinate (b);
+    \draw[ultra thin, <->] (a) -- (b) node[pos=0.5, #6] {#7};
+  \end{scope}}
+
+\NewDocumentCommand\sdist{O{0.6}O{0.5}mmmmm}{%
+  \begin{scope}
+    \draw[shift={#3}, rotate=#5, ultra thin] (0,0) -- ++(#1,0);
+    \draw[shift={#4}, rotate=#5, ultra thin] (0,0) -- ++(#1,0);
+    \path[shift={#3}, rotate=#5] (#2,0) coordinate (a);
+    \path[shift={#3}, rotate=#5] (#2,0.2) coordinate (A);
+    \path[shift={#4}, rotate=#5] (#2,0) coordinate (b);
+    \path[shift={#4}, rotate=#5] (#2,-0.2) coordinate (B);
+    \draw[ultra thin, <-] (a) -- (A);
+    \draw[ultra thin, <-] (b) -- (B);
+    \path[rotate=#5] ($(a)!0.5!(b)$) coordinate (c);
+    \node[#6] at (c) {#7};
+  \end{scope}}
+
+\endinput

@@ -1,0 +1,91 @@
+\input{regression-test}
+\documentclass{article}
+\usepackage{physketch}
+\begin{document}
+\START
+\TEST{commands}{%
+  \TYPE{\meaning\physketchset}%
+  \TYPE{\ifdefined\dist defined\else undefined\fi}%
+  \TYPE{\ifdefined\angledist defined\else undefined\fi}%
+  \TYPE{\ifdefined\pulley defined\else undefined\fi}%
+  \TYPE{\ifdefined\lightsource defined\else undefined\fi}%
+  \TYPE{\ifdefined\lens defined\else undefined\fi}%
+  \TYPE{\ifdefined\sdist defined\else undefined\fi}%
+}
+\TEST{settings}{%
+  \physketchset{hatch distance=1mm, dist/offset=7mm}%
+  \TYPE{\pgfkeysvalueof{/physketch/hatch distance}}%
+  \TYPE{\pgfkeysvalueof{/physketch/dist/offset}}%
+}
+\TEST{picture}{%
+  \setbox0=\hbox{%
+  \begin{tikzpicture}
+    \draw[surface] (0,0) -- (4,0);
+    \draw[surface'] (0,1) -- (4,1);
+    \draw[surface] (0,3) -- (1,3) -- (1,2.4) -- (3,2.4);
+    \draw[surface] (5,0) arc[start angle=180, end angle=360, radius=1] -- (8,0);
+    \fill[surface] (0,-2) rectangle (2,-1.5);
+    \draw[surface, hatch angle=-45, hatch distance=1mm] (0,-3) -- (2,-3);
+    \draw[lifted] (1,0) rectangle ++(1,0.6);
+    \draw[body] (2,0) rectangle ++(1,0.6);
+    \draw[water] (3,-2) rectangle (4,-1);
+    \draw[glass] (3,-2) rectangle (4,-1);
+    \draw[mid arrow] (0,-3) -- (3,-3);
+    \draw[mid arrow'] (0,-3) -- (3,-3);
+    \draw[force] (0,-3) -- ++(0,1);
+    \draw[force=1mm, red] (0,-3) -- ++(1,1);
+    \draw[spring] (5,-3) -- (8,-3);
+    \draw[spring={coils=6, zigzag, amplitude=1mm}] (5,-4) -- (8,-4);
+    \draw[spring={segment length=4mm, ends=3mm}] (5,-5) -- (8,-5);
+    \pulley[name=p, outer=1cm]{(9,-2)}
+    \draw (p.-45) -- ++(45:1);
+    \draw (p-center) -- ++(0,-2) pic {weight};
+    \pulley{(12,-2)}
+    \piston[name=P, width=1.95cm, rod=0.5cm]{(1,0.05)}
+    \draw[->] (P-rod) -- ++(0,0.5);
+    \piston[rotate=90, rod side=south]{(3,0)}
+    \lightsource[name=T, halo=0.3cm, fill=ray1!30]{(9,4)}
+    \pic at (10,1) {fulcrum};
+    \pic[rotate=180] at (10,2) {fulcrum};
+    \draw[rod={segments=10, name=R}] (0,5) -- (10,5);
+    \draw (R-3-bottom) -- (R-7-top);
+    \draw[rod={segments=3, start dark, width=3mm, dark=ray3}] (0,6) -- (30:2);
+    \pic at (11,-1) {nut};
+    \draw[screen] (6,3) -- (6,0);
+    \draw[screen'] (6.5,3) arc[start angle=0, end angle=90, radius=1];
+    \draw[mirror] (5,0) -- (7,0);
+    \draw[mirror'] (5,0) arc[start angle=-30, end angle=30, radius=3];
+    \lightsource[name=S]{(9,3)}
+    \lightsource{(10,3)}
+    \draw[ray] (S) -- (12,4);
+    \draw[ray=2, mid arrow] (S) -- (12,3);
+    \draw[virtual ray=3] (S) -- (8,2);
+    \draw[optical axis] (0,0) -- (3,0);
+    \lens[name=L]{(13,0)}
+    \lens[diverging, height=2cm]{(14,0)}
+    \lens[name=K, rotate=10]{(16,0)}
+    \draw[object] (15,0) -- ++(0,1);
+    \draw[virtual object] (17,0) -- ++(0,-1);
+    \rotation{(0,8)}
+    \rotation[cw, tilt=0.35, radius=5mm, start=-30, end=200, l=$\omega$, red]{(2,8)}
+    \draw (L.north) -- (L.south);
+    \pic at (11,0) {field in};
+    \pic at (12,0) {field out};
+    \draw (0,-6) to[R] (2,-6) to[circuit spring] (4,-6);
+    \draw (0,-7) to[I'] (2,-7) to[I', invert, l=$I_0$] (4,-7)
+      to[ammeter] (6,-7) to[ammeter=1] (8,-7) to[voltmeter=2] (10,-7)
+      to[ohmmeter] (12,-7);
+    \dist[l=$L$] (0,-4) -- (4,-4);
+    \dist[offset=-5mm, red, l=$L$, label style={font=\small}] (0,-4) -- (4,-4);
+    \dist[outside, l=$b$] (5,-5) -- (5,-5.3);
+    \dist[direction=0, gap=1mm, l_=$h$, pos=0.3] (6,-6) -- (7,-4.5);
+    \dist (6,-7) -- (7,-7);
+    \angledist[l=$\alpha$] (11,-5) -- (9,-5) -- (40:1);
+    \angledist[radius=5mm, double=yellow, l_=$\beta$, pos=0.3] (40:1) -- (9,-5) -- (90:1);
+    \angledist[label radius=1.5cm, l=$\gamma$] (90:1) -- (9,-5) -- (11,-5);
+    \coordinate (P) at (12,-5);
+    \angledist (P) -- (9,-5) -- (12,-4);
+  \end{tikzpicture}}%
+  \TYPE{picture typeset}%
+}
+\END

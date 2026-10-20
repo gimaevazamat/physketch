@@ -1,0 +1,19 @@
+build/
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.listing
+physketch-ctan.zip
+physketch-ctan.curlopt
+.DS_Store
+physketch-doc.pdf
+
+# personal Russian translation, never published
+ru/
+
+# drafts and references of the old design.sty, not part of the package
+Design/

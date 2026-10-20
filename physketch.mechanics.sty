@@ -1,0 +1,270 @@
+%% physketch.mechanics.sty
+%% Mechanics part of physketch: bodies, pistons, springs, rods, pulleys,
+%% fulcrums, weights and nuts.
+%%
+%% Copyright (C) 2024-2026 Azamat Gimaev
+%% This work may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.3c of this license
+%% or (at your option) any later version.
+\NeedsTeXFormat{LaTeX2e}[2020/10/01]
+\ProvidesPackage{physketch.mechanics}
+  [2026/10/20 v0.1.0 physketch: mechanics]
+
+\RequirePackage{physketch.general}
+
+% ---------------------------------------------------------------------
+% Bodies
+% ---------------------------------------------------------------------
+\tikzset{
+  body/.style       = {draw, fill=body},
+  light body/.style = {draw, fill=lightbody},
+  dark body/.style  = {draw, fill=darkbody},
+  piston/.style     = {draw, fill=body},
+  lifted/.style     = {shift={(#1:\pgfkeysvalueof{/physketch/gap})}},
+  lifted/.default   = 90,
+}
+
+% ---------------------------------------------------------------------
+% Springs
+% ---------------------------------------------------------------------
+% \draw[spring] (A) -- (B);  \draw[spring={coils=8, amplitude=3mm}] ...
+\pgfqkeys{/physketch/spring}{
+  segment length/.initial = 2mm,
+  coils/.initial          = {},
+  amplitude/.initial      = 2mm,
+  ends/.initial           = 1mm,
+  shape/.is choice,
+  shape/snake/.code       = \def\physketch@spring@shape{snake},
+  shape/zigzag/.code      = \def\physketch@spring@shape{zigzag},
+  snake/.style            = {shape=snake},
+  zigzag/.style           = {shape=zigzag},
+}
+\def\physketch@spring@shape{snake}
+
+% one half of a period, up (#1 = 1) or down (#1 = -1)
+\pgfdeclaredecoration{physketch spring}{initial}{
+  \state{initial}[width=0pt, next state=up,
+      persistent precomputation=\physketch@spring@setup]{}
+  \state{up}[width=.5\pgfdecorationsegmentlength, next state=down,
+      switch if less than=.5\pgfdecorationsegmentlength-0.01pt to final]
+    {\physketch@spring@half{1}}
+  \state{down}[width=.5\pgfdecorationsegmentlength, next state=up,
+      switch if less than=.5\pgfdecorationsegmentlength-0.01pt to final]
+    {\physketch@spring@half{-1}}
+  \state{final}{\pgfpathlineto{\pgfpointdecoratedpathlast}}
+}
+\def\physketch@spring@setup{%
+  \edef\physketch@coils{\pgfkeysvalueof{/physketch/spring/coils}}%
+  \ifx\physketch@coils\@empty
+    \pgfmathsetlength\pgfdecorationsegmentlength
+      {\pgfkeysvalueof{/physketch/spring/segment length}}%
+  \else
+    \pgfmathsetlength\pgfdecorationsegmentlength
+      {\pgfdecoratedremainingdistance/(\physketch@coils)}%
+  \fi
+  \pgfmathsetlength\pgfdecorationsegmentamplitude
+    {\pgfkeysvalueof{/physketch/spring/amplitude}}%
+}
+\def\physketch@spring@half#1{%
+  \csname physketch@spring@\physketch@spring@shape\endcsname{#1}%
+}
+\def\physketch@spring@snake#1{%
+  \pgfpathsine{\pgfqpoint{.25\pgfdecorationsegmentlength}%
+    {#1\pgfdecorationsegmentamplitude}}%
+  \pgfpathcosine{\pgfqpoint{.25\pgfdecorationsegmentlength}%
+    {-#1\pgfdecorationsegmentamplitude}}%
+}
+\def\physketch@spring@zigzag#1{%
+  \pgfpathlineto{\pgfqpoint{.25\pgfdecorationsegmentlength}%
+    {#1\pgfdecorationsegmentamplitude}}%
+  \pgfpathlineto{\pgfqpoint{.5\pgfdecorationsegmentlength}{0pt}}%
+}
+
+% circuitikz also has a `spring' key (a bipole); physketch.circuits
+% keeps it as `circuit spring' and calls this macro again
+\def\physketch@definespring{%
+  \tikzset{
+    spring/.code = {%
+      \pgfqkeys{/physketch/spring}{##1}%
+      \tikzset{decorate, decoration={physketch spring,
+        pre length=\pgfkeysvalueof{/physketch/spring/ends},
+        post length=\pgfkeysvalueof{/physketch/spring/ends}}}%
+    },
+    spring/.default = {},
+  }%
+}
+\physketch@definespring
+
+% ---------------------------------------------------------------------
+% Rods divided into equal parts
+% ---------------------------------------------------------------------
+% \draw[rod={segments=10, width=1.5mm, name=R}] (A) -- (B);
+% A straight bar from A to B made of alternating light and dark parts.
+% With a name it provides the coordinates R-<i> (i = 0..segments) on the
+% axis of the bar at the borders of the parts, and R-<i>-top, R-<i>-bottom
+% on its sides (top is on the left of the direction from A to B).
+\newif\ifphysketch@rod@dark
+\pgfqkeys{/physketch/rod}{
+  segments/.initial = 10,
+  width/.initial    = 1.5mm,
+  name/.initial     = {},
+  light/.initial    = white,
+  dark/.initial     = darkbody,
+  start dark/.code  = \physketch@rod@darktrue,
+  start light/.code = \physketch@rod@darkfalse,
+}
+\pgfdeclaredecoration{physketch rod}{segment}{
+  \state{segment}[width=\pgfdecoratedinputsegmentremainingdistance,
+                  next state=segment]{%
+    \pgfinterruptpath
+      \pgfscope
+        \physketch@rod@draw
+      \endpgfscope
+    \endpgfinterruptpath
+  }
+  \state{final}{}
+}
+\def\physketch@rodkey#1{\pgfkeysvalueof{/physketch/rod/#1}}
+\def\physketch@rod@draw{%
+  \pgfmathsetlengthmacro\physketch@L{\pgfdecoratedinputsegmentlength}%
+  \pgfmathsetlengthmacro\physketch@ww{\physketch@rodkey{width}}%
+  \pgfmathsetlengthmacro\physketch@w{\physketch@ww/2}%
+  \pgfmathtruncatemacro\physketch@n{\physketch@rodkey{segments}}%
+  \pgfmathsetlengthmacro\physketch@seg{\physketch@L/\physketch@n}%
+  \edef\physketch@name{\physketch@rodkey{name}}%
+  \ifphysketch@rod@dark\def\physketch@parity{0}\else\def\physketch@parity{1}\fi
+  % the parts
+  \foreach \physketch@i in {1,...,\physketch@n}{%
+    \pgfmathsetlengthmacro\physketch@x{(\physketch@i-1)*\physketch@seg}%
+    \pgfmathparse{mod(\physketch@i+\physketch@parity,2)==0}%
+    \ifnum\pgfmathresult=1
+      \pgfsetfillcolor{\physketch@rodkey{dark}}%
+    \else
+      \pgfsetfillcolor{\physketch@rodkey{light}}%
+    \fi
+    \pgfpathrectangle{\pgfqpoint{\physketch@x}{-\physketch@w}}%
+      {\pgfqpoint{\physketch@seg}{\physketch@ww}}%
+    \pgfusepath{fill}%
+  }%
+  % the outline
+  \pgfpathrectangle{\pgfqpoint{0pt}{-\physketch@w}}%
+    {\pgfqpoint{\physketch@L}{\physketch@ww}}%
+  \pgfusepath{stroke}%
+  % the coordinates
+  \ifx\physketch@name\@empty\else
+    \foreach \physketch@i in {0,...,\physketch@n}{%
+      \pgfmathsetlengthmacro\physketch@x{\physketch@i*\physketch@seg}%
+      \pgfcoordinate{\physketch@name-\physketch@i}%
+        {\pgfqpoint{\physketch@x}{0pt}}%
+      \pgfcoordinate{\physketch@name-\physketch@i-top}%
+        {\pgfqpoint{\physketch@x}{\physketch@w}}%
+      \pgfcoordinate{\physketch@name-\physketch@i-bottom}%
+        {\pgfqpoint{\physketch@x}{-\physketch@w}}%
+    }%
+  \fi
+}
+\tikzset{
+  rod/.code = {%
+    \physketch@rod@darkfalse
+    \pgfqkeys{/physketch/rod}{#1}%
+    \tikzset{decorate, decoration={physketch rod}}%
+  },
+  rod/.default = {},
+}
+
+% ---------------------------------------------------------------------
+% Pulleys
+% ---------------------------------------------------------------------
+% \pulley[name=p, outer=1cm, inner=0.05cm]{(x,y)}
+% The pulley is a circular node `p' (anchors p.west, p.-45, ...) with an
+% axle node `p-center'; lines drawn from (p-center) start at the axle.
+\pgfqkeys{/physketch/pulley}{
+  name/.initial  = {},
+  outer/.initial = 0.5cm,
+  inner/.initial = 0.05cm,
+  .unknown/.code = \physketch@unknown{#1},
+}
+\NewDocumentCommand\pulley{O{}m}{%
+  \begingroup
+    \def\physketch@opts{}%
+    \pgfqkeys{/physketch/pulley}{#1}%
+    \physketch@getname{pulley}%
+    \pgfmathsetlengthmacro\physketch@outer{2*(\pgfkeysvalueof{/physketch/pulley/outer})}%
+    \pgfmathsetlengthmacro\physketch@inner{2*(\pgfkeysvalueof{/physketch/pulley/inner})}%
+    \edef\physketch@do{\noexpand\node[transform shape, circle, draw, thick, inner sep=0pt,
+      outer sep=0pt, minimum size=\physketch@outer,
+      \unexpanded\expandafter{\physketch@opts}] (\physketch@name) at
+      \unexpanded{#2} {};}%
+    \physketch@do
+    \node[transform shape, circle, draw, fill=white, inner sep=0pt, outer sep=0pt,
+      minimum size=\physketch@inner] (\physketch@name-center) at #2 {};
+  \endgroup
+}
+
+% ---------------------------------------------------------------------
+% Pistons
+% ---------------------------------------------------------------------
+% \piston[name=P, width=2cm, thickness=1mm, rod=1cm, rod side=north]{(x,y)}
+% The plate is a rectangular node `P' centred at (x,y); the rod starts at
+% P.<rod side> and ends at the coordinate `P-rod'.
+\pgfqkeys{/physketch/piston}{
+  name/.initial      = {},
+  width/.initial     = 2cm,
+  thickness/.initial = 1mm,
+  rod/.initial       = 1cm,
+  rod side/.initial  = north,
+  .unknown/.code     = \physketch@unknown{#1},
+}
+\NewDocumentCommand\piston{O{}m}{%
+  \begingroup
+    \def\physketch@opts{}%
+    \pgfqkeys{/physketch/piston}{#1}%
+    \physketch@getname{piston}%
+    \pgfmathsetlengthmacro\physketch@w{\pgfkeysvalueof{/physketch/piston/width}}%
+    \pgfmathsetlengthmacro\physketch@h{\pgfkeysvalueof{/physketch/piston/thickness}}%
+    \pgfmathsetlengthmacro\physketch@rod{\pgfkeysvalueof{/physketch/piston/rod}}%
+    \edef\physketch@side{\pgfkeysvalueof{/physketch/piston/rod side}}%
+    \edef\physketch@do{\noexpand\node[transform shape, rectangle, draw, fill=body,
+      inner sep=0pt, outer sep=0pt, minimum width=\physketch@w,
+      minimum height=\physketch@h, \unexpanded\expandafter{\physketch@opts}]
+      (\physketch@name) at \unexpanded{#2} {};}%
+    \physketch@do
+    \coordinate (\physketch@name-rod) at
+      ($(\physketch@name.\physketch@side)!-\physketch@rod!(\physketch@name.center)$);
+    \ifdim\physketch@rod>0pt
+      \draw[thick] (\physketch@name.\physketch@side) -- (\physketch@name-rod);
+    \fi
+  \endgroup
+}
+
+% ---------------------------------------------------------------------
+% Pictures
+% ---------------------------------------------------------------------
+\tikzset{
+  % a fulcrum (point of support): the apex is at the origin, the base with
+  % its hatching below; rotate=180 gives a point of suspension
+  pics/fulcrum/.style = {code={
+    \draw (0,0) -- (0.1,-0.173) -- (-0.1,-0.173) -- cycle;
+    \draw[surface] (-0.2,-0.173) -- (0.2,-0.173);
+    \coordinate (-center) at (0,0);
+    \coordinate (-base) at (0,-0.173);
+  }},
+  pics/weight/.style = {code={
+    \draw[fill=body] (-.2,0) -- (-.2,.3)
+      .. controls (0,.4) and (-.1,.4) .. (-.1,.5) arc[start angle=180,
+      end angle=0, radius=.1] .. controls (.1,.4) and (0,.4) .. (.2,.3)
+      -- (.2,0) -- cycle;
+    \coordinate (-center) at (0,.2);
+    \coordinate (-top) at (0,.6);
+  }},
+  pics/nut/.style = {code={
+    \begin{scope}[scale=0.4]
+      \draw[fill=body, even odd rule]
+        (0:1) -- (60:1) -- (120:1) -- (180:1) -- (240:1) -- (300:1) -- cycle
+        (0,0) circle[radius=0.45];
+    \end{scope}
+    \coordinate (-center) at (0,0);
+  }},
+}
+
+\endinput
