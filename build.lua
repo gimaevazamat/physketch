@@ -55,8 +55,8 @@ uploadconfig = {
   summary     = "TikZ styles and pictures for physics drawings",
   description = [[The package provides TikZ styles, pictures and commands for the drawings found in physics problems: fixed surfaces, bodies and pistons, springs, pulleys, rods and fulcrums, forces and rotation arrows, liquids and glass, light sources, lenses, screens and mirrors, current sources and meters, and engineering-style distances and angles. It also fixes a consistent house style for line widths, gaps and arrow tips.]],
   topic       = {"pgf-tikz", "physics", "graphics-in-tex"},
-  ctanPath    = "/macros/latex/contrib/physketch",
+  ctanPath    = "/graphics/pgf/contrib/physketch",
   repository  = "https://github.com/gimaevazamat/physketch",
   bugtracker  = "https://github.com/gimaevazamat/physketch/issues",
-  update      = false,
+  update      = true,
 }
