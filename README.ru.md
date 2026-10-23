@@ -62,8 +62,21 @@ TikZ/PGF 3.1.5 или новее (для `patterns.meta`), LaTeX 2020-10-01 ил
 
 ## Установка
 
-Положите все файлы `physketch*.sty` в `TEXMFHOME`, например в
-`~/texmf/tex/latex/physketch/`, или рядом со своим документом.
+`physketch` входит в TeX Live:
+
+```bash
+tlmgr install physketch
+```
+
+Чтобы поставить текущую версию с GitHub (macOS, Linux):
+
+```bash
+d="$(kpsewhich -var-value TEXMFHOME)/tex/latex/physketch"; t=$(mktemp -d); curl -fsSL https://github.com/gimaevazamat/physketch/archive/refs/heads/main.tar.gz | tar -xz -C "$t" && mkdir -p "$d" && cp "$t"/physketch-*/physketch*.sty "$d"/ && rm -rf "$t" && echo "physketch installed to $d"
+```
+
+Такая копия важнее версии из TeX Live; удалить её можно командой
+`rm -rf "$(kpsewhich -var-value TEXMFHOME)/tex/latex/physketch"`.
+Можно и просто положить все файлы `physketch*.sty` рядом со своим документом.
 
 ## Лицензия
 
