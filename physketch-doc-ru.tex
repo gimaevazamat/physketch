@@ -1,0 +1,938 @@
+% physketch-doc-ru.tex -- Russian documentation for the physketch package
+% Copyright (C) 2024-2026 Azamat Gimaev
+% This file is part of the physketch package, distributed under the
+% LaTeX Project Public License 1.3c or later.
+\documentclass[a4paper,11pt]{article}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{physketch}
+\usetikzlibrary{babel}
+\usepackage[most]{tcolorbox}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks, linkcolor=blue!50!black, urlcolor=blue!50!black,
+  pdftitle={Пакет physketch},
+}
+
+\emergencystretch=2em
+\newcommand\pkg[1]{\textsf{#1}}
+\newcommand\cs[1]{\texttt{\textbackslash#1}}
+\newcommand\key[1]{\texttt{#1}}
+\newcommand\marg[1]{\texttt{\{}\meta{#1}\texttt{\}}}
+\newcommand\oarg[1]{\texttt{[}\meta{#1}\texttt{]}}
+\newcommand\meta[1]{\ensuremath{\langle}\textit{#1}\ensuremath{\rangle}}
+
+% кириллица в листингах (кодировка T2A)
+\lstdefinestyle{physketch}{
+  language=[LaTeX]TeX, basicstyle=\ttfamily\small, columns=fullflexible,
+  keepspaces, texcsstyle=*\color{blue!60!black},
+  commentstyle=\color{black!55}\itshape,
+  inputencoding=utf8, extendedchars=true,
+  literate=
+    {а}{{\selectfont\char224}}1 {б}{{\selectfont\char225}}1
+    {в}{{\selectfont\char226}}1 {г}{{\selectfont\char227}}1
+    {д}{{\selectfont\char228}}1 {е}{{\selectfont\char229}}1
+    {ё}{{\"e}}1                 {ж}{{\selectfont\char230}}1
+    {з}{{\selectfont\char231}}1 {и}{{\selectfont\char232}}1
+    {й}{{\selectfont\char233}}1 {к}{{\selectfont\char234}}1
+    {л}{{\selectfont\char235}}1 {м}{{\selectfont\char236}}1
+    {н}{{\selectfont\char237}}1 {о}{{\selectfont\char238}}1
+    {п}{{\selectfont\char239}}1 {р}{{\selectfont\char240}}1
+    {с}{{\selectfont\char241}}1 {т}{{\selectfont\char242}}1
+    {у}{{\selectfont\char243}}1 {ф}{{\selectfont\char244}}1
+    {х}{{\selectfont\char245}}1 {ц}{{\selectfont\char246}}1
+    {ч}{{\selectfont\char247}}1 {ш}{{\selectfont\char248}}1
+    {щ}{{\selectfont\char249}}1 {ъ}{{\selectfont\char250}}1
+    {ы}{{\selectfont\char251}}1 {ь}{{\selectfont\char252}}1
+    {э}{{\selectfont\char253}}1 {ю}{{\selectfont\char254}}1
+    {я}{{\selectfont\char255}}1,
+}
+\newtcblisting{example}{
+  text side listing, listing options={style=physketch},
+  colback=black!3, colframe=black!30, boxrule=0.4pt, arc=1mm,
+  lefthand width=0.34\linewidth, sidebyside gap=4mm,
+  halign lower=center}
+\newtcblisting{example*}{
+  text and listing, listing options={style=physketch}, unbreakable,
+  halign upper=center,
+  colback=black!3, colframe=black!30, boxrule=0.4pt, arc=1mm}
+\newtcblisting{code}{
+  listing only, listing options={style=physketch},
+  colback=black!3, colframe=black!30, boxrule=0.4pt, arc=1mm}
+
+\title{Пакет \pkg{physketch}\\[2pt]
+  \large Стили и фигуры TikZ для физических рисунков}
+\author{}
+\date{v0.1.0 \quad 2026/10/20}
+
+% отмечает anchor на рисунках с anchors
+\newcommand\showanchor[3][right]{%
+  \fill[red] #2 circle[radius=0.8pt]
+    node[#1, font=\scriptsize\ttfamily, text=red!70!black, inner sep=1.5pt] {#3};}
+% то же, но подпись вынесена и соединена тонкой линией
+\newcommand\showanchorat[4][right]{%
+  \draw[red, ultra thin] #2 -- #3;
+  \showanchor[#1]{#2}{}\path #3 node[#1, font=\scriptsize\ttfamily,
+    text=red!70!black, inner sep=1.5pt] {#4};}
+\newenvironment{anchors}
+  {\begin{tcolorbox}[colback=white, colframe=black!30, boxrule=0.4pt, arc=1mm,
+     halign=center, title={\small anchors}, coltitle=black, colbacktitle=black!8]}
+  {\end{tcolorbox}}
+\newcommand\swatch[1]{\tikz[baseline=-0.6ex]\fill[#1, draw=black!40] (0,-0.15) rectangle (0.6,0.25);}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\pkg{physketch} "--- набор стилей, фигур и команд TikZ для рисунков к
+физическим задачам: неподвижные поверхности, зеркала, линзы и экраны,
+жидкости и стекло, пружины, блоки и гирьки, источники света, направления
+полей и выносные размеры. Пакет также задаёт единый стиль оформления:
+какие линии толстые, какие тонкие, каковы зазоры и как выглядят наконечники
+стрелок.
+\end{abstract}
+
+\tableofcontents
+
+\section{Введение}
+
+\subsection{Подключение}
+Пакет состоит из нескольких частей. Можно подключить их все сразу или только
+нужные:
+\begin{code}
+\usepackage{physketch}             % всё
+\usepackage{physketch.general}     % цвета, материалы, поверхности, векторы, размеры
+\usepackage{physketch.mechanics}   % тела, пружины, блоки, гирьки
+\usepackage{physketch.optics}      % лучи, источники, линзы, экраны, зеркала
+\usepackage{physketch.circuits}    % circuitikz, источники тока, приборы
+\end{code}
+Каждая часть подключает \pkg{physketch.general}. Часть
+\pkg{physketch.circuits} подключает \pkg{circuitikz} и задаёт
+\verb|\ctikzset{american, resistor=european, inductor=american}|.
+
+Рисунки делаются в обычном окружении \texttt{tikzpicture}. Стиль пакета
+(сейчас это вид наконечника стрелки) применяется ко всем рисункам
+автоматически:
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \draw[->] (0,0) -- (2,0);
+\end{tikzpicture}
+\end{example}
+
+\subsection{Настройки}
+Общие параметры меняются командой \cs{physketchset}\marg{список ключей},
+например
+\begin{code}
+\physketchset{hatch distance=1mm, dist/offset=7mm}
+\end{code}
+Все ключи перечислены в разделе~\ref{sec:keys}.
+
+\subsection{Общие правила}
+\begin{itemize}
+  \item Линии, которые существуют только на рисунке (вспомогательные линии,
+    размеры), рисуются \key{ultra thin}.
+  \item Физические объекты рисуются линией стандартной толщины или
+    \key{thick} (сосуды, поверхности, блоки, экраны).
+  \item Оси координат и векторы рисуются линией стандартной толщины; силы
+    рисуются стилем \key{force} (раздел~\ref{sec:forces}).
+  \item Объекты, которые рисуют \cs{pulley}, \cs{piston}, \cs{lens} и
+    \cs{lightsource}, масштабируются вместе с рисунком (опция \key{scale}),
+    так что их размеры согласованы с координатами.
+  \item Тело, лежащее на поверхности, приподнимается на небольшой зазор
+    \(0.025\,\text{см}\), чтобы было видно, что оно может двигаться; такой же
+    зазор оставляют между поршнем и стенками сосуда.
+\end{itemize}
+
+\subsection{Цвета}
+\begin{center}
+\begin{tabular}{@{}ll@{\qquad}ll@{\qquad}ll@{}}
+  \toprule
+  \multicolumn{2}{@{}l}{материалы} & \multicolumn{2}{l}{лучи} & \multicolumn{2}{l@{}}{тела} \\
+  \midrule
+  \swatch{water} & \texttt{water} & \swatch{ray1} & \texttt{ray1} & \swatch{lightbody} & \texttt{lightbody} \\
+  \swatch{ice}   & \texttt{ice}   & \swatch{ray2} & \texttt{ray2} & \swatch{body} & \texttt{body} \\
+  \swatch{oil}   & \texttt{oil}   & \swatch{ray3} & \texttt{ray3} & \swatch{darkbody}  & \texttt{darkbody} \\
+  \swatch{gas}   & \texttt{gas}   & & & & \\
+  \swatch{glass} & \texttt{glass} & & & & \\
+  \bottomrule
+\end{tabular}
+\end{center}
+Цвета материалов называются так же, как стили из
+раздела~\ref{sec:materials}: \verb|\draw[water]| применяет стиль
+(полупрозрачную заливку), а \verb|fill=water!50| или \verb|draw=water|
+используют цвет. Любой цвет можно переопределить через \cs{definecolor} или
+\cs{colorlet}.
+
+\section{Общие стили}
+
+\subsection{Неподвижные поверхности}
+Неподвижное тело (пол, стена, потолок, опора) рисуется стилем
+\key{surface}: линия \key{thick} со штриховкой справа по ходу пути.
+\key{surface'} штрихует левую сторону. Поэтому пол рисуется слева направо
+с \key{surface}, а потолок "--- слева направо с \key{surface'}:
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \draw[surface] (0,0) -- (3,0);      % пол
+  \draw[surface'] (0,2) -- (3,2);     % потолок
+  \draw[surface] (-0.5,2) -- (-0.5,0); % левая стена
+  \draw[surface] (3.5,0) -- (3.5,2);  % правая стена
+\end{tikzpicture}
+\end{example}
+Штриховка заканчивается ровно на концах пути и идёт непрерывно вдоль ломаных
+(углы срезаются по биссектрисе) и кривых; \verb|\fill[surface]|
+заштриховывает целую область:
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[surface] (0,1) -- (1,1) -- (1,0.4)
+    -- (2.5,0.4) -- (3.5,1.4);
+  \draw[surface] (0,-0.2)
+    arc[start angle=180, end angle=360,
+        radius=1.2] -- (3.5,-0.2);
+  \draw[body]
+    (1.2,-1.25) circle[radius=0.15];
+  \fill[surface] (0,-2.5) rectangle (3.5,-2);
+\end{tikzpicture}
+\end{example}
+Ключи \key{hatch distance}, \key{hatch depth} и \key{hatch angle} меняют
+штриховку одного пути, например \verb|\draw[surface, hatch angle=-45]|.
+
+\subsection{Материалы}\label{sec:materials}
+\key{water}, \key{ice}, \key{oil}, \key{gas} и \key{glass} заливают
+область полупрозрачным цветом.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \fill[water] (0,0) rectangle ++(2,-2.5);
+  \piston[width=1.95cm]{(1,0.05)}
+  \draw[thick] (0,0.8) |- (2,-2.5) -- (2,0.8);
+  \draw[glass] (3,-2.5) rectangle ++(1,2);
+\end{tikzpicture}
+\end{example}
+\begin{tcolorbox}[colback=black!3, colframe=black!30, boxrule=0.4pt, arc=1mm]
+\centering
+\begin{tikzpicture}
+  \foreach \m [count=\i] in {water, ice, oil, gas, glass}
+    \draw[\m] (2*\i,0) rectangle ++(1.5,1) node[below=2pt, midway, yshift=-0.5cm] {\small\texttt{\m}};
+\end{tikzpicture}
+\end{tcolorbox}
+
+\subsection{Стрелки в середине пути}
+\key{mid arrow}\,=\,\meta{положение} ставит наконечник \verb|>| на путь
+(по умолчанию в положении \(0.6\)); \key{mid arrow'} направлен назад (по
+умолчанию \(0.4\)).
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \draw (0,0) -- ++(2.5,0);
+  \draw[mid arrow] (0,-0.5) -- ++(2.5,0);
+  \draw[mid arrow'] (0,-1) -- ++(2.5,0);
+  \draw[mid arrow=0.3, mid arrow=0.8]
+    (0,-1.5) -- ++(2.5,0);
+\end{tikzpicture}
+\end{example}
+
+\subsection{Силы}\label{sec:forces}
+\key{force}\,=\,\meta{радиус} рисует силу: стрелку \key{thick} с точкой
+заданного радиуса (по умолчанию \(0.05\,\text{см}\)) в точке приложения "---
+в начале пути.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[surface] (0,0) -- (3.4,0);
+  \draw[body, lifted] (1,0) rectangle ++(1.4,0.9);
+  \draw[force] (1.7,0.45) -- ++(0,-1.1)
+    node[right] {$m\vec g$};
+  \draw[force] (1.7, 0.025) -- ++(0,1.5)
+    node[right] {$\vec N$};
+  \draw[force, red] (2.4,0.45) -- ++(1,0)
+    node[above] {$\vec F$};
+\end{tikzpicture}
+\end{example}
+
+\subsection{Векторы, перпендикулярные плоскости}
+Фигуры \texttt{field in} и \texttt{field out} изображают вектор (поле, ток,
+скорость, \ldots), перпендикулярный плоскости рисунка и направленный от нас
+или к нам. Именованная фигура даёт координату \texttt{-center}.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \foreach \x in {0,0.5,1} \pic at (\x,0) {field in};
+  \foreach \x in {2,2.5,3} \pic at (\x,0) {field out};
+  \node[below=2mm] at (0.5,0) {$\vec B$};
+  \node[below=2mm] at (2.5,0) {$\vec v$};
+\end{tikzpicture}
+\end{example}
+
+\subsection{Стрелки вращения}
+\verb|\rotation[|\meta{опции}\verb|]{|\meta{центр}\verb|}| рисует дугу со
+стрелкой вокруг точки \meta{центр} "--- для угловой скорости или вращения.
+Опции:
+\begin{description}
+  \item[\key{radius}\,=\,\meta{длина}] радиус дуги (по умолчанию
+    \(3\,\text{мм}\));
+  \item[\key{start}\,=\,\meta{угол}, \key{end}\,=\,\meta{угол}] где дуга
+    начинается и заканчивается, против часовой стрелки (по умолчанию \(45\)
+    и \(315\));
+  \item[\key{ccw}, \key{cw}] направление вращения (по умолчанию
+    \key{ccw}): стрелка стоит в конце или в начале дуги;
+  \item[\key{tilt}\,=\,\meta{коэффициент}] сжатие дуги по вертикали: \(1\)
+    (по умолчанию) "--- вращение в плоскости рисунка, около \(0.35\) "---
+    вращение вокруг вертикальной оси, видимое сбоку;
+  \item[\key{l}\,=\,\meta{текст}] подпись, ставится снаружи дуги под углом
+    \key{label angle} (по умолчанию \(0\), справа);
+\end{description}
+остальные опции, например цвет, передаются дуге.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \rotation{(0,0)}
+  \rotation[cw, l=$\omega$]{(1,0)}
+  \rotation[radius=5mm, start=-60, end=200]
+    {(2.5,0)}
+  \draw[dash dot, ultra thin]
+    (4,-0.8) -- (4,0.8);
+  \rotation[tilt=0.35, l=$\omega$]{(4,0.4)}
+\end{tikzpicture}
+\end{example}
+
+\subsection{Размеры}
+\verb|\dist[|\meta{опции}\verb|] |\meta{A}\verb| -- |\meta{B}\verb|;|
+пишется как путь TikZ. Команда рисует две выносные линии от точек \meta{A}
+и \meta{B}, размерную линию со стрелками на обоих концах и подпись, заданную
+опцией \key{l}. По умолчанию выносные линии перпендикулярны \(AB\) и
+направлены влево от направления из \(A\) в \(B\) (если идти от \(A\) к \(B\),
+размерная линия будет слева); отрицательный \key{offset} переносит размерную
+линию на другую сторону.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \draw (0,0) rectangle (3,0.5);
+  \dist[l=$3$~см] (0,0.5) -- (3,0.5);
+  \dist[outside, l=$b$] (0,0) -- (0,0.5);
+  \dist[offset=-5mm, l=$a$] (0,0) -- (3,0);
+\end{tikzpicture}
+\end{example}
+
+Опции \cs{dist}:
+\begin{description}
+  \item[\key{l}\,=\,\meta{текст}] подпись с внешней стороны размерной линии;
+  \item[\key{l\_}\,=\,\meta{текст}] подпись с внутренней стороны, между
+    размерной линией и предметом;
+  \item[\key{pos}\,=\,\meta{доля}] положение подписи вдоль размерной линии
+    (по умолчанию \(0.5\), середина);
+  \item[\key{offset}\,=\,\meta{длина}] расстояние от точек до размерной
+    линии (по умолчанию \(5\,\text{мм}\));
+  \item[\key{overshoot}\,=\,\meta{длина}] насколько выносные линии выходят
+    за размерную (по умолчанию \(1\,\text{мм}\));
+  \item[\key{gap}\,=\,\meta{длина}] зазор между точкой и её выносной линией
+    (по умолчанию \(0\));
+  \item[\key{direction}\,=\,\meta{угол}] рисовать выносные линии в заданном
+    направлении, а не перпендикулярно \(AB\); удобно, чтобы показать
+    горизонтальное или вертикальное расстояние между точками на разной
+    высоте;
+  \item[\key{outside}, \key{inside}] для маленьких расстояний: \key{outside}
+    ставит две короткие стрелки снаружи выносных линий;
+  \item[\key{outside length}\,=\,\meta{длина}] длина этих стрелок (по
+    умолчанию \(2\,\text{мм}\));
+  \item[\key{label style}\,=\,\meta{опции}, \key{line style}\,=\,\meta{опции}]
+    дополнительные опции TikZ для подписи и для всех линий.
+\end{description}
+Любой другой ключ передаётся в TikZ и действует на весь размер (например,
+цвет). Стили \texttt{physketch/dist line}, \texttt{physketch/dist extension}
+и \texttt{physketch/dist label} можно поменять для всего документа через
+\cs{tikzset}.
+
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \draw[surface] (-0.3,0) -- (3,0);
+  \draw (0,0) -- (2.6,1.3);
+  \dist[direction=0, offset=3.5mm, l=$h$]
+    (2.6,0) -- (2.6,1.3);
+  \dist[offset=4mm, red, l=$\ell$, pos=0.3,
+    label style={font=\small}]
+    (0,0) -- (2.6,1.3);
+  \dist[offset=-12mm, l_=$d$] (0,0) -- (3,0);
+\end{tikzpicture}
+\end{example}
+
+\subsection{Углы}
+\verb|\angledist[|\meta{опции}\verb|] |\meta{A}\verb| -- |\meta{O}\verb| -- |\meta{B}\verb|;|
+рисует дугу вокруг вершины \meta{O} от луча \(OA\) к лучу \(OB\) против
+часовой стрелки (как в библиотеке TikZ \texttt{angles}); чтобы отметить
+другой угол, поменяйте \meta{A} и \meta{B} местами. Точки можно задавать
+координатами или именами. Опции:
+\begin{description}
+  \item[\key{l}\,=\,\meta{текст}] подпись снаружи дуги;
+  \item[\key{l\_}\,=\,\meta{текст}] подпись внутри дуги;
+  \item[\key{pos}\,=\,\meta{доля}] положение подписи вдоль дуги (по
+    умолчанию \(0.5\), середина);
+  \item[\key{radius}\,=\,\meta{длина}] радиус дуги (по умолчанию
+    \(0.75\,\text{см}\));
+  \item[\key{label distance}\,=\,\meta{длина}] зазор между дугой и подписью
+    (по умолчанию \(1\,\text{мм}\)); подпись касается дуги своим краем, так
+    что не закрывает дугу при любом радиусе;
+  \item[\key{label radius}\,=\,\meta{длина}] вместо этого поставить центр
+    подписи на этом расстоянии от вершины;
+  \item[\key{label style}\,=\,\meta{опции}] дополнительные опции TikZ для
+    подписи.
+\end{description}
+Остальные опции, например \key{double} или цвет, передаются в TikZ.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \coordinate (O) at (0,0);
+  \coordinate (A) at (2,0);
+  \coordinate (B) at (30:2);
+  \coordinate (C) at (80:2);
+  \draw (A) -- (O) -- (B) (O) -- (C);
+  \angledist[l=$\alpha$] (A) -- (O) -- (B);
+  \angledist[double=yellow!20, radius=0.9cm,
+    l=$\beta$] (B) -- (O) -- (C);
+\end{tikzpicture}
+\end{example}
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.general}
+\begin{tikzpicture}
+  \draw (0,0) -- (2.5,0) -- (1.2,1.6) -- cycle;
+  \angledist[l_=$\varphi$, radius=1cm]
+    (2.5,0) -- (0,0) -- (1.2,1.6);
+  \angledist[l=$\psi$, radius=4mm]
+    (1.2,1.6) -- (2.5,0) -- (0,0);
+\end{tikzpicture}
+\end{example}
+
+\section{Механика}
+\emph{Часть \pkg{physketch.mechanics}.}
+
+\subsection{Тела}
+\key{body} рисует тело с серой заливкой цвета \texttt{body};
+\key{light body} и \key{dark body} используют цвета \texttt{lightbody} и
+\texttt{darkbody}. Белое тело рисуется обычным \cs{draw}. \key{piston}
+совпадает с \key{body} (для поршней другой формы; см. также \cs{piston}).
+\key{lifted}\,=\,\meta{угол} сдвигает объект на зазор в заданном
+направлении (по умолчанию \(90\), то есть вверх).
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[surface] (-0.5,0) -- (4.5,0);
+  \draw[lifted] (0,0) rectangle ++(1,0.8);
+  \draw[light body, lifted] (1.5,0) rectangle ++(1,0.8);
+  \draw[body, lifted] (3,0) rectangle ++(1,0.8);
+\end{tikzpicture}
+\end{example}
+
+\subsection{Пружины}
+\key{spring} превращает прямой путь в пружину. Значение "--- список опций:
+\begin{description}
+  \item[\key{segment length}\,=\,\meta{длина}] длина одного витка (по
+    умолчанию \(2\,\text{мм}\));
+  \item[\key{coils}\,=\,\meta{число}] число витков вместо длины витка; длина
+    витка тогда вычисляется по длине пути;
+  \item[\key{amplitude}\,=\,\meta{длина}] половина ширины пружины (по
+    умолчанию \(2\,\text{мм}\));
+  \item[\key{ends}\,=\,\meta{длина}] прямые участки на концах (по умолчанию
+    \(1\,\text{мм}\));
+\end{description}
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[spring] (0,0) -- (3,0);
+  \draw[spring={coils=6}] (0,-0.6) -- (3,-0.6);
+  \draw[spring={amplitude=1mm,
+    segment length=2mm, ends=7mm}]
+    (0,-1.2) -- (3,-1.2);
+\end{tikzpicture}
+\end{example}
+В \pkg{circuitikz} есть свой \key{spring} (механический двухполюсник). Если
+подключена часть \pkg{physketch.circuits}, он доступен как
+\key{circuit spring}: \verb|\draw (0,0) to[circuit spring] (2,0);|.
+
+\subsection{Поршни}
+\cs{piston}\oarg{опции}\marg{центр} рисует поршень: серую пластину с
+центром в точке \meta{центр} и ручку. Опции:
+\begin{description}
+  \item[\key{name}\,=\,\meta{имя}] имя поршня;
+  \item[\key{width}\,=\,\meta{длина}] ширина пластины (по умолчанию
+    \(2\,\text{см}\)); по правилам оформления это ширина сосуда минус два
+    зазора по \(0.025\,\text{см}\);
+  \item[\key{thickness}\,=\,\meta{длина}] толщина пластины (по умолчанию
+    \(1\,\text{мм}\));
+  \item[\key{rod}\,=\,\meta{длина}] длина ручки (по умолчанию
+    \(1\,\text{см}\); при \(0\) ручка не рисуется);
+  \item[\key{rod side}\,=\,\meta{anchor}] откуда идёт ручка: \key{north} (по
+    умолчанию), \key{south}, \key{east} или \key{west};
+\end{description}
+остальные опции, например \key{rotate} или \key{fill}, передаются пластине.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \fill[gas] (0,0) rectangle (2,1.5);
+  \draw[thick] (0,2.6) |- (2,0) -- (2,2.6);
+  \piston[name=P, width=1.95cm]{(1,1.55)}
+  \draw[force] (P-rod) -- ++(0,0.5) node[right] {$\vec F$};
+  \piston[rotate=90, width=1cm, rod side=south]
+    {(3,0.8)}
+\end{tikzpicture}
+\end{example}
+\begin{anchors}
+\begin{tikzpicture}
+  \piston[name=P, width=4cm, thickness=1cm, rod=1.2cm]{(0,0)}
+  \showanchor[above]{(P-rod)}{P-rod}
+  \showanchor[above left]{(P.north west)}{P.north west}
+  \showanchor[above right]{(P.north east)}{P.north east}
+  \showanchor[left]{(P.west)}{P.west}
+  \showanchor[right]{(P.east)}{P.east}
+  \showanchor[below]{(P.south)}{P.south}
+  \showanchor[below left]{(P.south west)}{P.south west}
+  \showanchor[below right]{(P.south east)}{P.south east}
+\end{tikzpicture}
+\end{anchors}
+
+\subsection{Блоки}
+\cs{pulley}\oarg{опции}\marg{центр} рисует блок. Опции:
+\begin{description}
+  \item[\key{name}\,=\,\meta{имя}] имя блока;
+  \item[\key{outer}\,=\,\meta{длина}] радиус колеса (по умолчанию
+    \(0.5\,\text{см}\));
+  \item[\key{inner}\,=\,\meta{длина}] радиус оси (по умолчанию
+    \(0.05\,\text{см}\));
+\end{description}
+остальные опции, например \key{fill}, передаются колесу. Блок с именем
+\texttt{p} "--- круглый узел: его anchors на границе \texttt{p.north},
+\texttt{p.west}, \texttt{p.-45}, \ldots\ (любой угол) лежат на колесе. Ось "---
+узел \texttt{p-center}; линия, проведённая от \texttt{(p-center)},
+начинается от края оси, так что ось остаётся чистой.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[surface'] (-1,2) -- (1,2);
+  \pulley[name=p, outer=0.6cm]{(0,0)}
+  \draw (p-center) -- (0,2);
+  \draw (p.west) -- ++(0,-1.4) pic {weight};
+  \draw (p.45) -- ++(-45:1);
+  \draw[force, red] (p.45) ++(-45:1)
+    -- ++(-45:0.8) node[right, black] {$\vec F$};
+\end{tikzpicture}
+\end{example}
+\begin{anchors}
+\begin{tikzpicture}
+  \pulley[name=p, outer=1.2cm, inner=0.1cm]{(0,0)}
+  \showanchor[above]{(p.north)}{p.north}
+  \showanchor[below]{(p.south)}{p.south}
+  \showanchor[left]{(p.west)}{p.west}
+  \showanchor[right]{(p.east)}{p.east}
+  \showanchor[above right]{(p.45)}{p.45}
+  \showanchor[below right]{(p.-45)}{p.-45}
+  \showanchor[above left]{(p.150)}{p.150}
+  \showanchor[below]{(p-center.south)}{p-center}
+\end{tikzpicture}
+\end{anchors}
+
+\subsection{Рейки с равными участками}
+\key{rod}\,=\,\meta{опции} превращает прямой путь в стержень из
+чередующихся светлых и тёмных участков равной длины "--- так в задачах по
+статике показывают плечи сил. Опции:
+\begin{description}
+  \item[\key{segments}\,=\,\meta{число}] число участков (по умолчанию
+    \(10\));
+  \item[\key{width}\,=\,\meta{длина}] толщина стержня (по умолчанию
+    \(1.5\,\text{мм}\));
+  \item[\key{start light}, \key{start dark}] цвет первого участка (по
+    умолчанию \key{start light});
+  \item[\key{light}\,=\,\meta{цвет}, \key{dark}\,=\,\meta{цвет}] цвета
+    участков (по умолчанию \texttt{white} и \texttt{darkbody});
+  \item[\key{name}\,=\,\meta{имя}] рейка с именем \texttt{R} даёт координаты
+    \texttt{R-}\meta{i}, \(i=0,\ldots,\)\key{segments}, на своей оси на
+    границах участков, и \texttt{R-}\meta{i}\texttt{-top},
+    \texttt{R-}\meta{i}\texttt{-bottom} на гранях (\texttt{top} "--- слева по
+    ходу пути).
+\end{description}
+\begin{example*}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[rod={segments=12, name=R}] (0,0) -- (6,0);
+  \pic at (R-2-bottom) {fulcrum};
+  \draw (R-1-bottom) -- ++(0,-1.2);
+  \draw (R-3-bottom) -- ++(0,-1.2);
+  \pulley[name=p]{(1,-1.2)}
+  \draw (p-center) -- ++(0,-1.2) node[draw, below, minimum size=3mm] {};
+  \draw (R-12-bottom) -- ++(0,-0.8) node[draw, below, minimum size=3mm] {};
+  \draw[->] (6.5,-0.6) -- ++(0,-0.8) node[midway, right] {$v$};
+\end{tikzpicture}
+\end{example*}
+\begin{anchors}
+\begin{tikzpicture}
+  \draw[rod={segments=4, width=8mm, name=R}] (0,0) -- (8,0);
+  \foreach \i in {0,...,4} {
+    \fill[red] (R-\i) circle[radius=0.8pt];
+    \showanchor[above]{(R-\i-top)}{R-\i-top}
+    \showanchor[below]{(R-\i-bottom)}{R-\i-bottom}
+  }
+  \showanchorat[left]{(R-0)}{(-0.6,0)}{R-0}
+  \showanchorat[right]{(R-4)}{(8.6,0)}{R-4}
+\end{tikzpicture}
+\end{anchors}
+
+\subsection{Фигуры}
+Фигуры TikZ (\emph{pics}) \texttt{fulcrum} (точка опоры: вершина в начале
+координат, основание со штриховкой снизу; \key{rotate}\,=\,\(180\) даёт
+точку подвеса), \texttt{weight} (гирька, стоящая на основании) и
+\texttt{nut} (гайка) ставятся командой \verb|\pic at (x,y) {имя};|.
+Именованная фигура, \verb|\pic (w) at ... {weight};|, даёт координаты,
+показанные ниже.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[thick] (-1,0) -- (1,0);
+  \pic at (0,0) {fulcrum};
+  \pic (h) [rotate=180] at (2,0.5) {fulcrum};
+  \draw (h-center) -- (2,-0.7) pic (w) {weight};
+  \pic at (0,-1) {nut};
+\end{tikzpicture}
+\end{example}
+\begin{anchors}
+\begin{tikzpicture}
+  \pic[scale=3] (f) at (0,0) {fulcrum};
+  \showanchor[above]{(f-center)}{f-center}
+  \showanchorat{(f-base)}{($(f-base)+(1.2,0.3)$)}{f-base}
+  \pic[scale=3] (w) at (3,-0.6) {weight};
+  \showanchorat{(w-center)}{($(w-center)+(1.2,0)$)}{w-center}
+  \showanchor[right=2pt]{(w-top)}{w-top}
+  \pic[scale=3] (n) at (7.6,0) {nut};
+  \showanchorat{(n-center)}{($(n-center)+(1.6,-0.6)$)}{n-center}
+\end{tikzpicture}
+\end{anchors}
+
+\section{Оптика}
+\emph{Часть \pkg{physketch.optics}.}
+
+\subsection{Лучи}
+\key{ray}\,=\,\meta{n} рисует световой луч цветом \texttt{ray}\meta{n}, где
+\meta{n} "--- 1 (жёлтый, по умолчанию), 2 (красный) или 3 (синий).
+\key{virtual ray}\,=\,\meta{n} рисует его продолжение пунктиром, а
+\key{optical axis} "--- тонкая штрихпунктирная линия.
+
+\key{object} рисует предмет (стрелку от \(A\) к \(B\)), а
+\key{virtual object} "--- его мнимое изображение пунктиром.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.optics}
+\begin{tikzpicture}
+  \draw[optical axis] (-0.5,0) -- (3.5,0);
+  \draw[object] (0,0) -- ++(0,0.8)
+    node[left] {$B$};
+  \node[below] at (0,0) {$A$};
+  \draw[virtual object] (2.5,0) -- ++(0,1.2)
+    node[left] {$B'$};
+\end{tikzpicture}
+\end{example}
+
+\subsection{Источники света}
+\cs{lightsource}\oarg{опции}\marg{положение} рисует точечный источник света.
+Опции:
+\begin{description}
+  \item[\key{name}\,=\,\meta{имя}] имя источника;
+  \item[\key{radius}\,=\,\meta{длина}] длина лучиков значка (по умолчанию
+    \(0.15\,\text{см}\));
+  \item[\key{halo}\,=\,\meta{длина}] радиус ореола вокруг источника,
+    отсчитывается от центра (по умолчанию \(0.2\,\text{см}\));
+  \item[\key{fill}\,=\,\meta{цвет}] цвет ореола (по умолчанию
+    \texttt{white}).
+\end{description}
+Источник с именем \texttt{S} "--- круглый узел радиуса \key{halo}. Линии,
+проведённые от \texttt{(S)}, начинаются от края ореола, поэтому лучи никогда
+не перекрывают источник; \texttt{S.center} "--- сам источник. Подписи к
+источникам ставятся на расстоянии \(0.2\,\text{см}\).
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.optics}
+\begin{tikzpicture}
+  \lightsource[name=S]{(0,0)}
+  \node[above=0.2cm] at (S) {$S$};
+  \foreach \a in {-30,0,30} \draw[ray] (S) -- (\a:2);
+  \lightsource[fill=ray1!30]{(0,-1)}
+\end{tikzpicture}
+\end{example}
+\begin{anchors}
+\begin{tikzpicture}[scale=1]
+  \lightsource[name=S, halo=1cm, radius=0.6cm]{(0,0)}
+  \draw[ultra thin, dashed] (S.center) circle[radius=1cm];
+  \showanchorat[right]{(S.center)}{(1.8,-0.9)}{S.center}
+  \showanchor[right]{(S.east)}{S.east}
+  \showanchor[above]{(S.north)}{S.north}
+  \showanchor[above right]{(S.45)}{S.45}
+  \showanchor[left]{(S.west)}{S.west}
+\end{tikzpicture}
+\end{anchors}
+
+\subsection{Линзы}
+\cs{lens}\oarg{опции}\marg{центр} рисует тонкую линзу. Опции:
+\begin{description}
+  \item[\key{name}\,=\,\meta{имя}] имя линзы;
+  \item[\key{height}\,=\,\meta{длина}] высота линзы (по умолчанию
+    \(3\,\text{см}\));
+  \item[\key{converging}, \key{diverging}] вид линзы: собирающая (по
+    умолчанию) или рассеивающая;
+\end{description}
+остальные опции, например \key{rotate}, передаются узлу. Линза с именем
+\texttt{L} "--- узел нулевой ширины. Линии рисуются стилями
+\texttt{physketch/lens} и \texttt{physketch/diverging lens}, которые можно
+поменять через \cs{tikzset}.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.optics}
+\begin{tikzpicture}
+  \draw[optical axis] (-2.2,0) -- (2.4,0);
+  \lens[name=L]{(0,0)}
+  \lightsource[name=S]{(-2,0.6)}
+  \draw[ray, mid arrow] (S) -- (0,0.6) -- (2,-0.6);
+  \draw[ray=2, mid arrow] (S) -- (0,0) -- (2,-0.6);
+  \draw[virtual ray] (0,0.6) -- (-1,1.2);
+  \lens[diverging, height=2cm]{(2.4,0)}
+\end{tikzpicture}
+\end{example}
+\begin{anchors}
+\begin{tikzpicture}
+  \draw[optical axis] (-2.6,0) -- (2.6,0);
+  \lens[name=L, height=2.4cm]{(0,0)}
+  \showanchor[right]{(L.north)}{L.north}
+  \showanchor[above right]{(L.center)}{L.center}
+  \showanchor[right]{(L.south)}{L.south}
+  \lens[name=M, height=2.4cm, diverging, rotate=0]{(4,0)}
+  \showanchor[right]{(M.center)}{M.center}
+  \showanchor[right]{(M.north)}{M.north}
+  \showanchor[right]{(M.south)}{M.south}
+\end{tikzpicture}
+\end{anchors}
+
+\subsection{Экраны}
+\key{screen} "--- линия \key{thick} с редкой штриховкой справа по ходу пути;
+\key{screen'} ставит штриховку слева. Шаг штриховки задаёт ключ
+\key{screen distance}. Работает и на прямых, и на кривых путях.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.optics}
+\begin{tikzpicture}
+  \draw[screen] (0,2) -- (0,0);
+  \draw[screen'] (0.8,2) -- (0.8,0);
+  \draw[screen'] (1.6,0) -- (3.6,0);
+  \draw[screen] (1.8,0.6) arc[start angle=180,
+    end angle=90, radius=1.4];
+\end{tikzpicture}
+\end{example}
+
+\subsection{Зеркала}
+\key{mirror} "--- линия \key{thick} с серым градиентом справа по ходу пути,
+светлеющим при удалении от линии; \key{mirror'} ставит градиент слева.
+Ширину градиента задаёт ключ \key{mirror width}. Работает и на прямых, и на
+кривых путях.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.optics}
+\begin{tikzpicture}
+  \draw[mirror] (0,2) -- (0,0);
+  \draw[mirror] (1.2,1.9)
+    arc[start angle=23.6, end angle=-23.6, radius=4.8];
+  \draw[mirror'] (2.4,1.9)
+    arc[start angle=156.4, end angle=203.6, radius=4.8];
+  \draw[mirror'] (3,0) -- (4,0);
+\end{tikzpicture}
+\end{example}
+
+\section{Электрические цепи}
+\emph{Часть \pkg{physketch.circuits}.} Она подключает \pkg{circuitikz} с
+американскими обозначениями, кроме резисторов (они европейские); все
+элементы \pkg{circuitikz} доступны как обычно. Векторы \texttt{field in} и
+\texttt{field out} берутся из \pkg{physketch.general}.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.circuits}
+\begin{tikzpicture}
+  \draw (0,0) to[battery1, l=$\mathcal{E}$] (0,2.5)
+    to[R=$R_1$] (4,2.5) to[C=$C$] (4,0)
+    to[L=$L$] (0,0);
+  \draw (4,0) node[ground] {};
+  \foreach \x in {1.4,2,2.6}
+    \pic at (\x,1.25) {field in};
+\end{tikzpicture}
+\end{example}
+
+\subsection{Источники тока}
+Кроме источника тока \pkg{circuitikz} \key{I} (стрелка в круге), пакет
+определяет второй вариант \key{I'} (длинное имя \key{current source'}): две
+галочки в круге. С ключом \key{invert} они направлены в другую сторону.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.circuits}
+\begin{tikzpicture}
+  \draw (0,0) to[I] (2,0);
+  \draw (0,-1.5) to[I'] ++(2,0);
+  \draw (0,-3) to[I', invert, l_=$I_0$] ++(2,0);
+\end{tikzpicture}
+\end{example}
+
+\subsection{Измерительные приборы}
+\key{ammeter}, \key{voltmeter} и \key{ohmmeter} рисуют круглый прибор с
+жирной буквой, которая не поворачивается вместе с элементом. Необязательный
+индекс, например \verb|voltmeter=2|, пишется нижним индексом; буква вместе с
+индексом стоит по центру круга.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.circuits}
+\begin{tikzpicture}
+  \draw (0,0) to[ammeter] (1.4,0)
+    to[ammeter=1] (2.8,0)
+    to[ammeter=2] (4.2,0);
+  \draw (0,-1) to[voltmeter] (1.4,-1)
+    to[voltmeter=2] (2.8,-1)
+    to[ohmmeter] (4.2,-1);
+\end{tikzpicture}
+\end{example}
+
+\section{Галерея}
+\begin{example*}
+% в преамбуле
+%\usepackage{physketch.optics}
+\begin{tikzpicture}
+  \lightsource[name=A]{(0,0)}
+  \node[above=0.2cm] at (A) {$A$};
+  \fill[black!10] (-5,-2.5) -- (-3,-1.5) -- (-3,-2) -- (-1,-2) -- (-1.25,-2.5);
+  \draw[glass] (-3,-2) rectangle ++(2,0.5);
+  \draw[surface] (-6,-2.5) -- (1,-2.5);
+
+  \dist[offset=-5mm, l=$L$] (-5,-2.5) -- (-1.25,-2.5);
+  \dist[l=$a$] (-3,-1.5) -- (-1,-1.5);
+  \dist[offset=-5mm, outside, l=$b$] (-3,-1.5) -- (-3,-2);
+
+  \draw[ultra thin] (-1,-2) -- (0.5,-2);
+  \dist[offset=0pt, overshoot=0pt, l=$H_0-h$] (A.south) -- (0,-2);
+  \dist[offset=0pt, overshoot=0pt, l=$h$] (0,-2) -- (0,-2.5);
+\end{tikzpicture}
+\end{example*}
+
+\begin{example*}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[thick, fill=lightbody] (-3,-3) rectangle (3,3) node[above left] {$m_1$};
+  \draw[force] (0,3) -- ++(0,1) node[right] {$\vec F$};
+  \draw[spring={coils=7, amplitude=1mm}] (0,3) -- (0,1.5)
+    node[midway, right=0.1cm] {$k_1$};
+  \draw[body] (-1,1.5) rectangle (1,0.5) node[midway] {$m_2$};
+  \draw[spring={coils=9, amplitude=1mm}] (0,0.5) -- (0,-1)
+    node[midway, right=0.1cm] {$k_2$};
+  \draw[body] (-1,-1) rectangle (1,-2) node[midway] {$m_3$};
+  \draw[->] (3.5,0.5) -- (3.5,-0.5) node[midway, right] {$g$};
+\end{tikzpicture}
+\end{example*}
+
+\section{Справочник}\label{sec:keys}
+\subsection{Общие ключи}
+Эти ключи лежат в \texttt{/physketch} и задаются через \cs{physketchset}.
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  ключ & по умолчанию & смысл \\
+  \midrule
+  \key{gap} & 0.25mm & зазор для \key{lifted} \\
+  \key{hatch distance} & 0.74mm & шаг штриховки \\
+  \key{hatch depth} & 1mm & ширина заштрихованной полосы \\
+  \key{hatch angle} & 45 & угол штрихов \\
+  \key{hatch line width} & 0.4pt & толщина штрихов \\
+  \key{screen distance} & 1.2mm & шаг штриховки \key{screen} \\
+  \key{mirror width} & 2mm & ширина градиента \key{mirror} \\
+  \key{dist/\meta{ключ}} & & умолчания для \cs{dist} \\
+  \key{angle/\meta{ключ}} & & умолчания для \cs{angledist} \\
+  \key{spring/\meta{ключ}} & & умолчания для \key{spring} \\
+  \key{rod/\meta{ключ}} & & умолчания для \key{rod} \\
+  \key{piston/\meta{ключ}} & & умолчания для \cs{piston} \\
+  \key{pulley/\meta{ключ}} & & умолчания для \cs{pulley} \\
+  \key{light source/\meta{ключ}} & & умолчания для \cs{lightsource} \\
+  \key{lens/\meta{ключ}} & & умолчания для \cs{lens} \\
+  \key{rotation/\meta{ключ}} & & умолчания для \cs{rotation} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Команды}
+\begin{center}\small
+\begin{tabular}{lll}
+  \toprule
+  команда & часть & назначение \\
+  \midrule
+  \cs{physketchset}\marg{ключи} & general & настройки \\
+  \verb|\dist[|\meta{опции}\verb|] |\meta{A}\verb| -- |\meta{B}\verb|;| & general & размеры \\
+  \verb|\angledist[|\meta{опции}\verb|] |\meta{A}\verb| -- |\meta{O}\verb| -- |\meta{B}\verb|;| & general & углы \\
+  \cs{piston}\oarg{опции}\marg{центр} & mechanics & поршни \\
+  \cs{pulley}\oarg{опции}\marg{центр} & mechanics & блоки \\
+  \cs{lightsource}\oarg{опции}\marg{положение} & optics & источники света \\
+  \cs{lens}\oarg{опции}\marg{центр} & optics & линзы \\
+  \cs{rotation}\oarg{опции}\marg{центр} & general & стрелки вращения \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Стили TikZ}
+\begin{center}\small
+\begin{tabular}{lll}
+  \toprule
+  стиль & часть & назначение \\
+  \midrule
+  \key{surface}, \key{surface'} & general & неподвижные поверхности и области \\
+  \key{hatch distance}, \key{hatch depth}, \key{hatch angle} & general & штриховка одного пути \\
+  \key{water}, \key{ice}, \key{oil}, \key{gas}, \key{glass} & general & материалы \\
+  \key{mid arrow}, \key{mid arrow'} & general & стрелки на пути \\
+  \key{force}\,=\,\meta{радиус} & general & силы \\
+  \key{body}, \key{light body}, \key{dark body}, \key{piston} & mechanics & тела \\
+  \key{lifted}\,=\,\meta{угол} & mechanics & сдвиг на зазор \\
+  \key{spring}\,=\,\meta{опции} & mechanics & пружины \\
+  \key{rod}\,=\,\meta{опции} & mechanics & рейки с равными участками \\
+  \key{ray}\,=\,\meta{n}, \key{virtual ray}\,=\,\meta{n}, \key{optical axis} & optics & лучи \\
+  \key{object}, \key{virtual object} & optics & предметы и изображения \\
+  \key{screen}, \key{screen'} & optics & экраны \\
+  \key{mirror}, \key{mirror'} & optics & зеркала \\
+  \key{circuit spring} & circuits & пружина \pkg{circuitikz} \\
+  \key{I'} & circuits & источник тока с галочками \\
+  \key{ammeter}, \key{voltmeter}, \key{ohmmeter}\,=\,\meta{индекс} & circuits & приборы \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Фигуры}
+\begin{center}\small
+\begin{tabular}{ll}
+  \toprule
+  часть & фигуры \\
+  \midrule
+  general & \texttt{field in}, \texttt{field out} \\
+  mechanics & \texttt{fulcrum}, \texttt{weight}, \texttt{nut} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

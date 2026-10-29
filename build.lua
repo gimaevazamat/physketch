@@ -8,16 +8,17 @@ module = "physketch"
 
 sourcefiles  = {"physketch*.sty"}
 installfiles = {"physketch*.sty"}
-typesetfiles = {"physketch-doc.tex"}
-docfiles     = {"physketch-doc.tex"}
-textfiles    = {"README.md"}
+typesetfiles = {"physketch-doc.tex", "physketch-doc-ru.tex"}
+docfiles     = {"physketch-doc.tex", "physketch-doc-ru.tex"}
+textfiles    = {"README.md", "CHANGELOG.md"}
 ctanreadme   = "README.md"
 
 checkengines = {"pdftex"}
 checkruns    = 1
 typesetruns  = 3
 
-tagfiles = {"physketch*.sty", "physketch-doc.tex", "README.md", "README.ru.md"}
+tagfiles = {"physketch*.sty", "physketch-doc.tex", "physketch-doc-ru.tex", "README.md", "README.ru.md",
+            "CHANGELOG.md"}
 
 local function iso_to_latex(date)
   return (date:gsub("-", "/"))
@@ -30,7 +31,7 @@ function update_tag(file, content, tagname, tagdate)
     content = content:gsub(
       "%[%d%d%d%d/%d%d/%d%d v[%d%.]+ ",
       "[" .. ldate .. " v" .. version .. " ")
-  elseif file == "physketch-doc.tex" then
+  elseif file:match("^physketch%-doc") then
     content = content:gsub(
       "\\date{v[%d%.]+ \\quad %d%d%d%d/%d%d/%d%d}",
       "\\date{v" .. version .. " \\quad " .. ldate .. "}")
@@ -38,6 +39,11 @@ function update_tag(file, content, tagname, tagdate)
     content = content:gsub(
       "Version [%d%.]+, %d%d%d%d%-%d%d%-%d%d",
       "Version " .. version .. ", " .. tagdate)
+  elseif file == "CHANGELOG.md" then
+    -- move the unreleased changes under the new version
+    content = content:gsub(
+      "## %[Unreleased%]",
+      "## [Unreleased]\n\n## [" .. version .. "] – " .. tagdate, 1)
   elseif file == "README.ru.md" then
     content = content:gsub(
       "Версия [%d%.]+, %d%d%d%d%-%d%d%-%d%d",

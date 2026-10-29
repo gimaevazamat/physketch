@@ -53,8 +53,9 @@ other parts.
 
 ## Documentation
 
-The full documentation is `physketch-doc.pdf`; it is built from
-`physketch-doc.tex` with `l3build doc`.
+The full documentation is `physketch-doc.pdf`, and a Russian translation is
+`physketch-doc-ru.pdf`; both are built from their `.tex` sources with
+`l3build doc`.
 
 ## Requirements
 

@@ -11,9 +11,7 @@ physketch-ctan.zip
 physketch-ctan.curlopt
 .DS_Store
 physketch-doc.pdf
-
-# personal Russian translation, never published
-ru/
+physketch-doc-ru.pdf
 
 # drafts and references of the old design.sty, not part of the package
 Design/
