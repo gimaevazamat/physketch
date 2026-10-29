@@ -470,7 +470,7 @@ other options, like \key{rotate} or \key{fill}, go to the plate.
   \fill[gas] (0,0) rectangle (2,1.5);
   \draw[thick] (0,2.6) |- (2,0) -- (2,2.6);
   \piston[name=P, width=1.95cm]{(1,1.55)}
-  \draw[->] (P-rod) -- ++(0,0.5) node[right] {$F$};
+  \draw[force] (P-rod) -- ++(0,0.5) node[right] {$\vec F$};
   \piston[rotate=90, width=1cm, rod side=south]
     {(3,0.8)}
 \end{tikzpicture}
@@ -512,8 +512,8 @@ of the axle, so the axle stays clean.
   \draw (p-center) -- (0,2);
   \draw (p.west) -- ++(0,-1.4) pic {weight};
   \draw (p.45) -- ++(-45:1);
-  \draw[->, red] (p.45) ++(-45:1)
-    -- ++(-45:0.8) node[right, black] {$F$};
+  \draw[force, red] (p.45) ++(-45:1)
+    -- ++(-45:0.8) node[right, black] {$\vec F$};
 \end{tikzpicture}
 \end{example}
 \begin{anchors}
@@ -820,7 +820,7 @@ the circle.
 %\usepackage{physketch.mechanics}
 \begin{tikzpicture}
   \draw[thick, fill=lightbody] (-3,-3) rectangle (3,3) node[above left] {$m_1$};
-  \draw[->] (0,3) -- ++(0,1) node[right] {$F$};
+  \draw[force] (0,3) -- ++(0,1) node[right] {$\vec F$};
   \draw[spring={coils=7, amplitude=1mm}] (0,3) -- (0,1.5)
     node[midway, right=0.1cm] {$k_1$};
   \draw[body] (-1,1.5) rectangle (1,0.5) node[midway] {$m_2$};
