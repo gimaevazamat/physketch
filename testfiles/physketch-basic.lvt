@@ -35,7 +35,7 @@
     \draw[force] (0,-3) -- ++(0,1);
     \draw[force=1mm, red] (0,-3) -- ++(1,1);
     \draw[spring] (5,-3) -- (8,-3);
-    \draw[spring={coils=6, zigzag, amplitude=1mm}] (5,-4) -- (8,-4);
+    \draw[spring={coils=6, amplitude=1mm}] (5,-4) -- (8,-4);
     \draw[spring={segment length=4mm, ends=3mm}] (5,-5) -- (8,-5);
     \pulley[name=p, outer=1cm]{(9,-2)}
     \draw (p.-45) -- ++(45:1);

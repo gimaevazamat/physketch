@@ -33,13 +33,7 @@
   coils/.initial          = {},
   amplitude/.initial      = 2mm,
   ends/.initial           = 1mm,
-  shape/.is choice,
-  shape/snake/.code       = \def\physketch@spring@shape{snake},
-  shape/zigzag/.code      = \def\physketch@spring@shape{zigzag},
-  snake/.style            = {shape=snake},
-  zigzag/.style           = {shape=zigzag},
 }
-\def\physketch@spring@shape{snake}
 
 % one half of a period, up (#1 = 1) or down (#1 = -1)
 \pgfdeclaredecoration{physketch spring}{initial}{
@@ -66,18 +60,10 @@
     {\pgfkeysvalueof{/physketch/spring/amplitude}}%
 }
 \def\physketch@spring@half#1{%
-  \csname physketch@spring@\physketch@spring@shape\endcsname{#1}%
-}
-\def\physketch@spring@snake#1{%
   \pgfpathsine{\pgfqpoint{.25\pgfdecorationsegmentlength}%
     {#1\pgfdecorationsegmentamplitude}}%
   \pgfpathcosine{\pgfqpoint{.25\pgfdecorationsegmentlength}%
     {-#1\pgfdecorationsegmentamplitude}}%
-}
-\def\physketch@spring@zigzag#1{%
-  \pgfpathlineto{\pgfqpoint{.25\pgfdecorationsegmentlength}%
-    {#1\pgfdecorationsegmentamplitude}}%
-  \pgfpathlineto{\pgfqpoint{.5\pgfdecorationsegmentlength}{0pt}}%
 }
 
 % circuitikz also has a `spring' key (a bipole); physketch.circuits
