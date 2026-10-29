@@ -4,6 +4,8 @@ All notable changes to `physketch` are listed here.
 
 ## [Unreleased]
 
+## [0.1.1] – 2026-10-29
+
 ### Added
 - Russian documentation, `physketch-doc-ru.pdf`.
 
