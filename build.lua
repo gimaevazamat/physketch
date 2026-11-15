@@ -33,7 +33,7 @@ function update_tag(file, content, tagname, tagdate)
       "[" .. ldate .. " v" .. version .. " ")
   elseif file:match("^physketch%-doc") then
     content = content:gsub(
-      "\\date{v[%d%.]+ \\quad %d%d%d%d/%d%d/%d%d}",
+      "\\date{v[%w%.%-]+ \\quad %d%d%d%d/%d%d/%d%d}",
       "\\date{v" .. version .. " \\quad " .. ldate .. "}")
   elseif file == "README.md" then
     content = content:gsub(
