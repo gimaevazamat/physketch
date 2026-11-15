@@ -159,6 +159,7 @@
   \swatch{oil}   & \texttt{oil}   & \swatch{ray3} & \texttt{ray3} & \swatch{darkbody}  & \texttt{darkbody} \\
   \swatch{gas}   & \texttt{gas}   & & & & \\
   \swatch{glass} & \texttt{glass} & & & & \\
+  \swatch{snow}  & \texttt{snow}  & & & & \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -206,8 +207,8 @@
 штриховку одного пути, например \verb|\draw[surface, hatch angle=-45]|.
 
 \subsection{Материалы}\label{sec:materials}
-\key{water}, \key{ice}, \key{oil}, \key{gas} и \key{glass} заливают
-область полупрозрачным цветом.
+\key{water}, \key{ice}, \key{snow}, \key{oil}, \key{gas} и \key{glass}
+заливают область полупрозрачным цветом.
 \begin{example}
 % в преамбуле
 %\usepackage{physketch.mechanics}
@@ -221,10 +222,42 @@
 \begin{tcolorbox}[colback=black!3, colframe=black!30, boxrule=0.4pt, arc=1mm]
 \centering
 \begin{tikzpicture}
-  \foreach \m [count=\i] in {water, ice, oil, gas, glass}
+  \foreach \m [count=\i] in {water, ice, snow, oil, gas, glass}
     \draw[\m] (2*\i,0) rectangle ++(1.5,1) node[below=2pt, midway, yshift=-0.5cm] {\small\texttt{\m}};
 \end{tikzpicture}
 \end{tcolorbox}
+
+\subsubsection*{Чёрно-белая печать}
+Для чёрно-белой печати материалы рисуются узорами из разбросанных
+элементов: \key{bw water} (штрихи), \key{bw thin water} (редкие штрихи,
+для воды поверх тел), \key{bw ice} (кружки), \key{bw snow} (точки) и
+\key{bw gas} (мелкий пунктир точками). Цветной вариант \key{snow}~---
+светлая заливка с точками \key{bw snow}. Цвет элементов задаёт ключ
+\key{pattern color}.
+\begin{example}
+% в преамбуле
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[body] (0.5,-2) rectangle ++(1,1);
+  \fill[bw thin water] (0,-0.5) rectangle (2,-2.5);
+  \draw (0,-0.5) -- (2,-0.5);
+  \draw[thick] (0,0) |- (2,-2.5) -- (2,0);
+  \fill[bw ice]  (3,-2.5) rectangle ++(1.5,0.8);
+  \fill[bw snow] (3,-1.7) rectangle ++(1.5,0.5);
+\end{tikzpicture}
+\end{example}
+\begin{tcolorbox}[colback=white, colframe=black!30, boxrule=0.4pt, arc=1mm]
+\centering
+\begin{tikzpicture}
+  \foreach \m [count=\i] in {bw water, bw thin water, bw ice, bw snow, bw gas}
+    \fill[\m] (2.6*\i,0) rectangle ++(1.7,1.2) node[below=2pt, midway, yshift=-0.6cm] {\small\texttt{\m}};
+\end{tikzpicture}
+\end{tcolorbox}
+\noindent\verb|\physketchset{materials=bw}| переключает \key{water}, \key{ice},
+\key{snow} и \key{gas} на чёрно-белые варианты, так что из одного исходника
+получается и цветной, и печатный рисунок; \verb|materials=color| возвращает
+цвета. Как и другие настройки, ключ действует до конца текущей группы.
+\key{oil} и \key{glass} остаются цветными.
 
 \subsection{Стрелки в середине пути}
 \key{mid arrow}\,=\,\meta{положение} ставит наконечник \verb|>| на путь
@@ -864,6 +897,7 @@
   \key{hatch depth} & 1mm & ширина заштрихованной полосы \\
   \key{hatch angle} & 45 & угол штрихов \\
   \key{hatch line width} & 0.4pt & толщина штрихов \\
+  \key{materials} & color & цветные или чёрно-белые материалы (\texttt{color}, \texttt{bw}) \\
   \key{screen distance} & 1.2mm & шаг штриховки \key{screen} \\
   \key{mirror width} & 2mm & ширина градиента \key{mirror} \\
   \key{dist/\meta{ключ}} & & умолчания для \cs{dist} \\
@@ -905,7 +939,8 @@
   \midrule
   \key{surface}, \key{surface'} & general & неподвижные поверхности и области \\
   \key{hatch distance}, \key{hatch depth}, \key{hatch angle} & general & штриховка одного пути \\
-  \key{water}, \key{ice}, \key{oil}, \key{gas}, \key{glass} & general & материалы \\
+  \key{water}, \key{ice}, \key{snow}, \key{oil}, \key{gas}, \key{glass} & general & материалы \\
+  \key{bw water}, \key{bw thin water}, \key{bw ice}, \key{bw snow}, \key{bw gas} & general & чёрно-белые материалы \\
   \key{mid arrow}, \key{mid arrow'} & general & стрелки на пути \\
   \key{force}\,=\,\meta{радиус} & general & силы \\
   \key{body}, \key{light body}, \key{dark body}, \key{piston} & mechanics & тела \\

@@ -137,6 +137,7 @@ All keys are listed in section~\ref{sec:keys}.
   \swatch{oil}   & \texttt{oil}   & \swatch{ray3} & \texttt{ray3} & \swatch{darkbody}  & \texttt{darkbody} \\
   \swatch{gas}   & \texttt{gas}   & & & & \\
   \swatch{glass} & \texttt{glass} & & & & \\
+  \swatch{snow}  & \texttt{snow}  & & & & \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -185,8 +186,8 @@ change the hatching of one path, for example
 \verb|\draw[surface, hatch angle=-45]|.
 
 \subsection{Materials}\label{sec:materials}
-\key{water}, \key{ice}, \key{oil}, \key{gas} and \key{glass} fill an area
-with a semi-transparent colour.
+\key{water}, \key{ice}, \key{snow}, \key{oil}, \key{gas} and \key{glass}
+fill an area with a semi-transparent colour.
 \begin{example}
 % in preamble
 %\usepackage{physketch.mechanics}
@@ -200,10 +201,42 @@ with a semi-transparent colour.
 \begin{tcolorbox}[colback=black!3, colframe=black!30, boxrule=0.4pt, arc=1mm]
 \centering
 \begin{tikzpicture}
-  \foreach \m [count=\i] in {water, ice, oil, gas, glass}
+  \foreach \m [count=\i] in {water, ice, snow, oil, gas, glass}
     \draw[\m] (2*\i,0) rectangle ++(1.5,1) node[below=2pt, midway, yshift=-0.5cm] {\small\texttt{\m}};
 \end{tikzpicture}
 \end{tcolorbox}
+
+\subsubsection*{Black-and-white printing}
+For a black-and-white print the materials are drawn with patterns of
+scattered marks: \key{bw water} (dashes), \key{bw thin water} (sparse
+dashes, for water over bodies), \key{bw ice} (small circles), \key{bw snow}
+(dots) and \key{bw gas} (fine stippling). The colour version of \key{snow}
+is a light fill with the dots of \key{bw snow}. The colour of the marks is
+set by \key{pattern color}.
+\begin{example}
+% in preamble
+%\usepackage{physketch.mechanics}
+\begin{tikzpicture}
+  \draw[body] (0.5,-2) rectangle ++(1,1);
+  \fill[bw thin water] (0,-0.5) rectangle (2,-2.5);
+  \draw (0,-0.5) -- (2,-0.5);
+  \draw[thick] (0,0) |- (2,-2.5) -- (2,0);
+  \fill[bw ice]  (3,-2.5) rectangle ++(1.5,0.8);
+  \fill[bw snow] (3,-1.7) rectangle ++(1.5,0.5);
+\end{tikzpicture}
+\end{example}
+\begin{tcolorbox}[colback=white, colframe=black!30, boxrule=0.4pt, arc=1mm]
+\centering
+\begin{tikzpicture}
+  \foreach \m [count=\i] in {bw water, bw thin water, bw ice, bw snow, bw gas}
+    \fill[\m] (2.6*\i,0) rectangle ++(1.7,1.2) node[below=2pt, midway, yshift=-0.6cm] {\small\texttt{\m}};
+\end{tikzpicture}
+\end{tcolorbox}
+\noindent\verb|\physketchset{materials=bw}| switches \key{water}, \key{ice},
+\key{snow} and \key{gas} to their black-and-white versions, so one source
+gives both a colour and a printed figure; \verb|materials=color| switches
+back. Like other settings, it acts until the end of the current group.
+\key{oil} and \key{glass} keep their colours.
 
 \subsection{Arrows in the middle of a path}
 \key{mid arrow}\,=\,\meta{position} puts the arrow tip \verb|>| on the path
@@ -844,6 +877,7 @@ These keys live in \texttt{/physketch} and are set with \cs{physketchset}.
   \key{hatch depth} & 1mm & width of the hatched band \\
   \key{hatch angle} & 45 & angle of the hatching strokes \\
   \key{hatch line width} & 0.4pt & line width of the hatching strokes \\
+  \key{materials} & color & materials in colour or black and white (\texttt{color}, \texttt{bw}) \\
   \key{screen distance} & 1.2mm & spacing of the hatching of \key{screen} \\
   \key{mirror width} & 2mm & width of the gradient of \key{mirror} \\
   \key{dist/\meta{key}} & & defaults for \cs{dist} \\
@@ -885,7 +919,8 @@ These keys live in \texttt{/physketch} and are set with \cs{physketchset}.
   \midrule
   \key{surface}, \key{surface'} & general & fixed surfaces and areas \\
   \key{hatch distance}, \key{hatch depth}, \key{hatch angle} & general & local hatching settings \\
-  \key{water}, \key{ice}, \key{oil}, \key{gas}, \key{glass} & general & materials \\
+  \key{water}, \key{ice}, \key{snow}, \key{oil}, \key{gas}, \key{glass} & general & materials \\
+  \key{bw water}, \key{bw thin water}, \key{bw ice}, \key{bw snow}, \key{bw gas} & general & materials in black and white \\
   \key{mid arrow}, \key{mid arrow'} & general & arrow tips on a path \\
   \key{force}\,=\,\meta{radius} & general & forces \\
   \key{body}, \key{light body}, \key{dark body}, \key{piston} & mechanics & bodies \\

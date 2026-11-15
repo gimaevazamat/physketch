@@ -4,6 +4,13 @@ All notable changes to `physketch` are listed here.
 
 ## [Unreleased]
 
+### Added
+- Black-and-white materials for printing: `bw water`, `bw thin water`
+  (water over bodies), `bw ice`, `bw snow` and `bw gas`.
+- The material `snow` and the colour `snow`.
+- `\physketchset{materials=bw}` switches `water`, `ice`, `snow` and `gas` to
+  their black-and-white versions; `materials=color` switches back.
+
 ## [0.1.1] – 2026-10-29
 
 ### Added
