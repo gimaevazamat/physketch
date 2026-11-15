@@ -11,6 +11,9 @@ All notable changes to `physketch` are listed here.
 - `\physketchset{materials=bw}` switches `water`, `ice`, `snow` and `gas` to
   their black-and-white versions; `materials=color` switches back.
 
+### Changed
+- The colour `oil` is a paler yellow (`FFD45C` instead of `FFC233`).
+
 ## [0.1.1] – 2026-10-29
 
 ### Added
