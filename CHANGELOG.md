@@ -4,6 +4,8 @@ All notable changes to `physketch` are listed here.
 
 ## [Unreleased]
 
+## [0.2] – 2026-11-15
+
 ### Added
 - Black-and-white materials for printing: `bw water`, `bw thin water`
   (water over bodies), `bw ice`, `bw snow` and `bw gas`.

@@ -6,7 +6,7 @@ TikZ styles, pictures and commands for physics drawings.
 
 On CTAN: <https://ctan.org/pkg/physketch>
 
-Version 0.1.1, 2026-10-29
+Version 0.2, 2026-11-15
 
 `physketch` is a LaTeX package for the drawings found in physics problems.
 It provides:

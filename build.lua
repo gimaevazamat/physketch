@@ -54,7 +54,7 @@ end
 
 uploadconfig = {
   pkg         = "physketch",
-  version     = "0.1.1 2026-10-29",
+  version     = "0.2 2026-11-15",
   author      = "Azamat Gimaev",
   uploader    = "Azamat Gimaev",
   license     = "lppl1.3c",
